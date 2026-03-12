@@ -3,7 +3,7 @@ import { HomePage } from './pages/HomePage'
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/SimpleWeatherService">
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="*" element={<HomePage />} />
