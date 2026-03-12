@@ -6,3 +6,11 @@ body {
 #root {
   min-height: 100vh;
 }
+
+.pt-safe-area {
+  padding-top: max(0.75rem, calc(env(safe-area-inset-top) + 0.5rem));
+}
+
+.pb-safe-area {
+  padding-bottom: max(1.5rem, calc(env(safe-area-inset-bottom) + 1rem));
+}

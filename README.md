@@ -129,6 +129,118 @@ No Husky or additional tooling required — the hook lives at `.git/hooks/pre-co
 
 ---
 
+## Mobile (Android) — Local Testing
+
+The app is packaged for Android via [Capacitor](https://capacitorjs.com/). All commands run from `SWS_App/`.
+
+### Prerequisites
+
+- Node.js 22+
+- [Android Studio](https://developer.android.com/studio) (installs the Android SDK and ADB)
+- ADB on your PATH — add to `~/.bashrc` or `~/.zshrc`:
+
+```bash
+export ANDROID_HOME=$HOME/Android/Sdk
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+```
+
+- USB Debugging enabled on your device: **Settings → About Phone → tap Build Number 7× → Developer Options → USB Debugging**
+
+### Build and run on a connected device
+
+```bash
+cd SWS_App
+npm install
+npm run build
+npx cap sync android
+npx cap run android
+```
+
+Capacitor will list connected devices and emulators. Select yours, or target directly:
+
+```bash
+npx cap run android --target <device-id>
+# device-id comes from: adb devices
+```
+
+### Build a debug APK for sideloading
+
+If you want an APK file to install manually (e.g. via `adb install` or file transfer):
+
+```bash
+cd SWS_App/android
+./gradlew assembleDebug
+# Output: app/build/outputs/apk/debug/app-debug.apk
+adb install app/build/outputs/apk/debug/app-debug.apk
+```
+
+> **Note:** The CI pipeline produces a signed release AAB (Android App Bundle), which is the Play Store format. AABs cannot be sideloaded directly — use a debug APK for device testing.
+
+### Open in Android Studio
+
+```bash
+npx cap open android
+```
+
+---
+
+## CI/CD Pipelines
+
+Three GitHub Actions workflows run automatically on push to `main`.
+
+### CI (`.github/workflows/ci.yml`)
+
+Runs on every push and pull request targeting `main`.
+
+| Step | Command |
+|---|---|
+| Lint | `npm run lint:fix` + verifies no files changed |
+| Typecheck | `npm run typecheck` |
+| Test | `npm run test -- --run` (Vitest, no watch) |
+
+All steps run inside `SWS_App/` with Node 22.
+
+### Deploy to GitHub Pages (`.github/workflows/deploy.yml`)
+
+Runs on push to `main`. Builds the web app and deploys it to GitHub Pages.
+
+| Step | What it does |
+|---|---|
+| `npm run build` | Vite production build → `SWS_App/dist/` |
+| Upload + deploy | Pushes `dist/` to the `github-pages` environment |
+
+### Mobile Builds (`.github/workflows/mobile.yml`)
+
+Runs on push to `main` and can be triggered manually via **workflow_dispatch**.
+
+Produces signed release artifacts for both platforms:
+
+**Android** (runs on `ubuntu-latest`):
+- Builds the web app with `VITE_BUILD_TARGET=mobile`
+- Syncs to Capacitor (`npx cap sync android`)
+- Signs and builds a release AAB using a keystore stored in repository secrets
+- Uploads `app-release.aab` as a build artifact
+
+**iOS** (runs on `macos-latest`):
+- Syncs to Capacitor (`npx cap sync ios`)
+- Imports a signing certificate and provisioning profile from repository secrets
+- Builds and exports a release IPA via `xcodebuild`
+- Uploads `App.ipa` as a build artifact
+
+**Required secrets** for mobile builds:
+
+| Secret | Used by |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | Android signing |
+| `ANDROID_KEYSTORE_PASSWORD` | Android signing |
+| `ANDROID_KEY_ALIAS` | Android signing |
+| `ANDROID_KEY_PASSWORD` | Android signing |
+| `IOS_CERTIFICATE_P12_BASE64` | iOS code signing |
+| `IOS_CERTIFICATE_PASSWORD` | iOS code signing |
+| `IOS_PROVISIONING_PROFILE_BASE64` | iOS provisioning |
+
+---
+
 ## Non-Goals
 
 This app intentionally does not include radar maps, severe weather alerts, social sharing, native mobile wrappers, ads, or upsell patterns. See [CLAUDE.md](CLAUDE.md) for the full project philosophy.

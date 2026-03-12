@@ -35,7 +35,7 @@ export function HomePage() {
   return (
     <div className="min-vh-100 d-flex flex-column">
       {/* Header */}
-      <header className="text-white shadow-sm py-3" style={{ backgroundColor: '#1d4ed8' }}>
+      <header className="text-white shadow-sm pb-3 pt-safe-area" style={{ backgroundColor: '#1d4ed8' }}>
         <div className="container-lg">
           <h1 className="fs-5 fw-bold mb-2 me-auto text-white">
             <span aria-hidden="true">🌤</span> Simple Weather Service
@@ -62,7 +62,7 @@ export function HomePage() {
       )}
 
       {/* Main content */}
-      <main className="flex-grow-1 py-4">
+      <main className="flex-grow-1 pt-4 pb-safe-area">
         <div className="container-lg">
           {/* Empty state */}
           {!activeLocation && !loading && (

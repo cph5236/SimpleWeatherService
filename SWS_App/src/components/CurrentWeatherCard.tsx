@@ -59,28 +59,24 @@ export function CurrentWeatherCard({ location, weather, isSaved, onSaveToggle }:
           </div>
         </div>
 
-        <div className="row row-cols-2 row-cols-sm-3 g-2 text-center">
-          <div className="col">
-            <div className="border rounded p-2">
-              <div className="small text-muted">Feels like</div>
-              <div className="fw-semibold">{Math.round(weather.feelsLike)}{tempUnit}</div>
-            </div>
+        <div className="d-flex justify-content-around border-top pt-2 mt-1 text-center">
+          <div>
+            <div className="text-muted" style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Feels like</div>
+            <div className="fw-semibold small">{Math.round(weather.feelsLike)}{tempUnit}</div>
           </div>
-          <div className="col">
-            <div className="border rounded p-2">
-              <div className="small text-muted">Humidity</div>
-              <div className="fw-semibold">{weather.humidity}%</div>
-            </div>
+          <div className="vr" />
+          <div>
+            <div className="text-muted" style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Humidity</div>
+            <div className="fw-semibold small">{weather.humidity}%</div>
           </div>
-          <div className="col">
-            <div className="border rounded p-2">
-              <div className="small text-muted">Wind</div>
-              <div className="fw-semibold">
-                {Math.round(weather.windSpeed)} {windUnit}{' '}
-                <span aria-label={`from the ${windDirectionLabel(weather.windDirection)}`}>
-                  {windDirectionLabel(weather.windDirection)}
-                </span>
-              </div>
+          <div className="vr" />
+          <div>
+            <div className="text-muted" style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Wind</div>
+            <div className="fw-semibold small">
+              {Math.round(weather.windSpeed)} {windUnit}{' '}
+              <span aria-label={`from the ${windDirectionLabel(weather.windDirection)}`}>
+                {windDirectionLabel(weather.windDirection)}
+              </span>
             </div>
           </div>
         </div>

@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
-    "build:mobile": "vite build && npx cap sync",
+    "build:mobile": "VITE_BUILD_TARGET=mobile vite build && npx cap sync",
     "cap:android": "npx cap open android",
     "cap:ios": "npx cap open ios"
   },
