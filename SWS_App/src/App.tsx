@@ -3,7 +3,7 @@ import { HomePage } from './pages/HomePage'
 
 export default function App() {
   return (
-    <BrowserRouter basename="/SimpleWeatherService">
+    <BrowserRouter basename={import.meta.env.VITE_BUILD_TARGET === 'mobile' ? '/' : '/SimpleWeatherService'}>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="*" element={<HomePage />} />

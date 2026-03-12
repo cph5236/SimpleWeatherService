@@ -40,11 +40,15 @@ export function SavedLocationsList({ locations, activeId, onSelect, onRemove }: 
           const admin1Display = loc.admin1 ? formatAdmin1(loc.admin1, loc.country) : null
           const label = `${loc.name}${admin1Display ? `, ${admin1Display}` : ''}`
           return (
-            <div key={loc.id} className="d-flex align-items-center flex-shrink-0">
+            <div
+              key={loc.id}
+              className={`d-inline-flex align-items-center flex-shrink-0 rounded-pill ${isActive ? 'bg-light text-dark' : 'border border-light text-white'}`}
+              style={{ overflow: 'hidden' }}
+            >
               <button
                 type="button"
-                className={`btn btn-sm ${isActive ? 'btn-light' : 'btn-outline-light'}`}
-                style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                className={`btn btn-sm border-0 rounded-0 ${isActive ? 'bg-light text-dark' : 'bg-transparent text-white'}`}
+                style={{ maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                 onClick={() => onSelect(loc)}
                 aria-current={isActive ? 'location' : undefined}
                 title={label}
@@ -53,7 +57,8 @@ export function SavedLocationsList({ locations, activeId, onSelect, onRemove }: 
               </button>
               <button
                 type="button"
-                className="btn btn-sm btn-link text-white-50 p-0 ms-1"
+                className={`btn btn-sm border-0 border-start rounded-0 px-2 ${isActive ? 'bg-light text-secondary border-secondary' : 'bg-transparent text-white-50 border-white-50'}`}
+                style={{ opacity: 0.7 }}
                 onClick={() => onRemove(loc.id)}
                 aria-label={`Remove ${loc.name} from saved locations`}
                 title="Remove"

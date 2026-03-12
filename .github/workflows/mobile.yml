@@ -27,6 +27,8 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+        env:
+          VITE_BUILD_TARGET: mobile
       - run: npx cap sync android
 
       - name: Decode keystore
