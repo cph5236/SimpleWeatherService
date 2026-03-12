@@ -1,0 +1,168 @@
+import type { CurrentWeather, DailyForecast, HourlyForecast, Units } from '../types/weather'
+
+export class WeatherError extends Error {
+  constructor(
+    message: string,
+    public code: number
+  ) {
+    super(message)
+    this.name = 'WeatherError'
+  }
+}
+
+interface CacheEntry<T> {
+  data: T
+  expiresAt: number
+}
+
+const cache = new Map<string, CacheEntry<unknown>>()
+const TTL_MS = 10 * 60 * 1000
+
+export function clearWeatherCache(): void {
+  cache.clear()
+}
+
+function getCached<T>(key: string): T | null {
+  const entry = cache.get(key)
+  if (!entry) return null
+  if (Date.now() > entry.expiresAt) {
+    cache.delete(key)
+    return null
+  }
+  return entry.data as T
+}
+
+function setCached<T>(key: string, data: T): void {
+  cache.set(key, { data, expiresAt: Date.now() + TTL_MS })
+}
+
+const BASE_URL = 'https://api.open-meteo.com/v1/forecast'
+
+function unitParams(units: Units): string {
+  if (units === 'imperial') {
+    return '&temperature_unit=fahrenheit&wind_speed_unit=mph'
+  }
+  return '&temperature_unit=celsius'
+}
+
+async function fetchWeather(url: string): Promise<unknown> {
+  const res = await fetch(url)
+  if (!res.ok) {
+    throw new WeatherError(`Weather API error: ${res.statusText}`, res.status)
+  }
+  return res.json()
+}
+
+export async function getCurrentWeather(lat: number, lon: number, units: Units): Promise<CurrentWeather> {
+  const key = `current,${lat},${lon},${units}`
+  const cached = getCached<CurrentWeather>(key)
+  if (cached) return cached
+
+  const url =
+    `${BASE_URL}?latitude=${lat}&longitude=${lon}` +
+    `&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code,is_day` +
+    unitParams(units)
+
+  const json = await fetchWeather(url)
+  const data = json as {
+    current: {
+      temperature_2m: number
+      apparent_temperature: number
+      relative_humidity_2m: number
+      wind_speed_10m: number
+      wind_direction_10m: number
+      weather_code: number
+      is_day: number
+    }
+  }
+
+  const result: CurrentWeather = {
+    temperature: data.current.temperature_2m,
+    feelsLike: data.current.apparent_temperature,
+    humidity: data.current.relative_humidity_2m,
+    windSpeed: data.current.wind_speed_10m,
+    windDirection: data.current.wind_direction_10m,
+    weatherCode: data.current.weather_code,
+    isDay: data.current.is_day === 1,
+    units,
+  }
+
+  setCached(key, result)
+  return result
+}
+
+export async function getDailyForecast(lat: number, lon: number, units: Units): Promise<DailyForecast[]> {
+  const key = `daily,${lat},${lon},${units}`
+  const cached = getCached<DailyForecast[]>(key)
+  if (cached) return cached
+
+  const url =
+    `${BASE_URL}?latitude=${lat}&longitude=${lon}` +
+    `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code,sunrise,sunset&forecast_days=10` +
+    unitParams(units)
+
+  const json = await fetchWeather(url)
+  const data = json as {
+    daily: {
+      time: string[]
+      temperature_2m_max: number[]
+      temperature_2m_min: number[]
+      precipitation_probability_max: number[]
+      weather_code: number[]
+      sunrise: string[]
+      sunset: string[]
+    }
+  }
+
+  const result: DailyForecast[] = data.daily.time.map((date, i) => ({
+    date,
+    tempMax: data.daily.temperature_2m_max[i],
+    tempMin: data.daily.temperature_2m_min[i],
+    precipProbability: data.daily.precipitation_probability_max[i] ?? 0,
+    weatherCode: data.daily.weather_code[i],
+    sunrise: data.daily.sunrise[i],
+    sunset: data.daily.sunset[i],
+  }))
+
+  setCached(key, result)
+  return result
+}
+
+export async function getHourlyForecast(lat: number, lon: number, units: Units): Promise<HourlyForecast[]> {
+  const key = `hourly,${lat},${lon},${units}`
+  const cached = getCached<HourlyForecast[]>(key)
+  if (cached) return cached
+
+  const url =
+    `${BASE_URL}?latitude=${lat}&longitude=${lon}` +
+    `&hourly=temperature_2m,precipitation_probability,wind_speed_10m,weather_code&forecast_days=2` +
+    unitParams(units)
+
+  const json = await fetchWeather(url)
+  const data = json as {
+    hourly: {
+      time: string[]
+      temperature_2m: number[]
+      precipitation_probability: number[]
+      wind_speed_10m: number[]
+      weather_code: number[]
+    }
+  }
+
+  const now = new Date()
+  const currentHour = now.toISOString().slice(0, 13) // "YYYY-MM-DDTHH"
+
+  const startIndex = data.hourly.time.findIndex((t) => t >= currentHour)
+  const sliceStart = startIndex === -1 ? 0 : startIndex
+
+  const result: HourlyForecast[] = data.hourly.time.slice(sliceStart, sliceStart + 24).map((time, i) => ({
+    time,
+    temperature: data.hourly.temperature_2m[sliceStart + i],
+    precipProbability: data.hourly.precipitation_probability[sliceStart + i] ?? 0,
+    windSpeed: data.hourly.wind_speed_10m[sliceStart + i],
+    weatherCode: data.hourly.weather_code[sliceStart + i],
+  }))
+
+  setCached(key, result)
+  return result
+}
