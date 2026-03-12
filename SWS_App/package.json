@@ -1,7 +1,7 @@
 {
   "name": "sws-app",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,7 +14,10 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "build:mobile": "VITE_BUILD_TARGET=mobile vite build && npx cap sync",
     "cap:android": "npx cap open android",
-    "cap:ios": "npx cap open ios"
+    "cap:ios": "npx cap open ios",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version",
+    "version:major": "npm version major --no-git-tag-version"
   },
   "dependencies": {
     "@capacitor/android": "^8.2.0",
