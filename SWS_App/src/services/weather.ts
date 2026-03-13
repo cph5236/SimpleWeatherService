@@ -1,12 +1,14 @@
 import type { CurrentWeather, DailyForecast, HourlyForecast, Units } from '../types/weather'
 
 export class WeatherError extends Error {
+  code: number
   constructor(
     message: string,
     code: number
   ) {
     super(message)
     this.name = 'WeatherError'
+    this.code = code
   }
 }
 
