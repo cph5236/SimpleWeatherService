@@ -31,8 +31,13 @@ export interface DailyForecast {
   date: string
   tempMax: number
   tempMin: number
+  feelsLikeMax: number
+  feelsLikeMin: number
   precipProbability: number
+  precipitationSum: number
   weatherCode: number
+  windSpeedMax: number
+  uvIndexMax: number
   sunrise: string
   sunset: string
 }
