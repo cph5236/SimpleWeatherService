@@ -1,11 +1,16 @@
+import { useEffect, useState } from 'react'
 import { getWeatherDescription, getWeatherEmoji } from '../types/weather'
 import type { CurrentWeather, Location, Units } from '../types/weather'
+
+const REFRESH_COOLDOWN_MS = 60 * 1000
 
 interface CurrentWeatherCardProps {
   location: Location
   weather: CurrentWeather
   isSaved: boolean
   onSaveToggle: () => void
+  onRefresh: () => void
+  lastRefreshed: number
 }
 
 function windDirectionLabel(degrees: number): string {
@@ -21,9 +26,39 @@ function windUnitLabel(units: Units): string {
   return units === 'metric' ? 'km/h' : 'mph'
 }
 
-export function CurrentWeatherCard({ location, weather, isSaved, onSaveToggle }: CurrentWeatherCardProps) {
+export function CurrentWeatherCard({
+  location,
+  weather,
+  isSaved,
+  onSaveToggle,
+  onRefresh,
+  lastRefreshed,
+}: CurrentWeatherCardProps) {
   const tempUnit = unitLabel(weather.units)
   const windUnit = windUnitLabel(weather.units)
+
+  const [secondsLeft, setSecondsLeft] = useState(0)
+
+  useEffect(() => {
+    const remaining = Math.ceil((lastRefreshed + REFRESH_COOLDOWN_MS - Date.now()) / 1000)
+    if (remaining <= 0) {
+      setSecondsLeft(0)
+      return
+    }
+    setSecondsLeft(remaining)
+    const id = setInterval(() => {
+      const s = Math.ceil((lastRefreshed + REFRESH_COOLDOWN_MS - Date.now()) / 1000)
+      if (s <= 0) {
+        setSecondsLeft(0)
+        clearInterval(id)
+      } else {
+        setSecondsLeft(s)
+      }
+    }, 1000)
+    return () => clearInterval(id)
+  }, [lastRefreshed])
+
+  const canRefresh = secondsLeft === 0
 
   return (
     <div className="card shadow-sm">
@@ -36,15 +71,27 @@ export function CurrentWeatherCard({ location, weather, isSaved, onSaveToggle }:
             </h2>
             <span className="text-muted small">{location.country}</span>
           </div>
-          <button
-            type="button"
-            className={`btn btn-sm ${isSaved ? 'btn-warning' : 'btn-outline-secondary'}`}
-            onClick={onSaveToggle}
-            aria-label={isSaved ? 'Remove from saved locations' : 'Save this location'}
-            title={isSaved ? 'Saved' : 'Save location'}
-          >
-            {isSaved ? '★' : '☆'}
-          </button>
+          <div className="d-flex gap-2">
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-secondary"
+              onClick={onRefresh}
+              disabled={!canRefresh}
+              aria-label="Refresh current weather"
+              title={canRefresh ? 'Refresh current weather' : `Refresh available in ${secondsLeft}s`}
+            >
+              {canRefresh ? '↻' : `↻ ${secondsLeft}s`}
+            </button>
+            <button
+              type="button"
+              className={`btn btn-sm ${isSaved ? 'btn-warning' : 'btn-outline-secondary'}`}
+              onClick={onSaveToggle}
+              aria-label={isSaved ? 'Remove from saved locations' : 'Save this location'}
+              title={isSaved ? 'Saved' : 'Save location'}
+            >
+              {isSaved ? '★' : '☆'}
+            </button>
+          </div>
         </div>
 
         <div className="d-flex align-items-center gap-3 mb-3">

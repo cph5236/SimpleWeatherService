@@ -11,16 +11,33 @@ import { useUnits } from '../hooks/useUnits'
 import { useWeather } from '../hooks/useWeather'
 import type { Location, SavedLocation } from '../types/weather'
 
+const LAST_LOCATION_KEY = 'sws-last-location'
+
+function loadLastLocation(): Location | null {
+  try {
+    const raw = localStorage.getItem(LAST_LOCATION_KEY)
+    return raw ? (JSON.parse(raw) as Location) : null
+  } catch {
+    return null
+  }
+}
+
 export function HomePage() {
   const { units, toggleUnits } = useUnits()
   const { savedLocations, addLocation, removeLocation, hasLocation } = useSavedLocations()
-  const [activeLocation, setActiveLocation] = useState<Location | null>(null)
-  const { current, daily, hourly, loading, error, refetch } = useWeather(activeLocation, units)
+  const [activeLocation, setActiveLocation] = useState<Location | null>(loadLastLocation)
+  const { current, daily, hourly, loading, error, refetch, refetchCurrent, lastCurrentFetch } =
+    useWeather(activeLocation, units)
 
   const activeId = activeLocation ? `${activeLocation.lat},${activeLocation.lon}` : null
 
-  function handleSelectSaved(loc: SavedLocation) {
+  function handleSelectLocation(loc: Location) {
     setActiveLocation(loc)
+    localStorage.setItem(LAST_LOCATION_KEY, JSON.stringify(loc))
+  }
+
+  function handleSelectSaved(loc: SavedLocation) {
+    handleSelectLocation(loc)
   }
 
   function handleSaveToggle() {
@@ -41,7 +58,7 @@ export function HomePage() {
             <span aria-hidden="true">🌤</span> Simple Weather Service
           </h1>
           <div className="d-flex align-items-center gap-1">
-            <SearchBar onSelect={setActiveLocation} />
+            <SearchBar onSelect={handleSelectLocation} />
             <UnitToggle units={units} onToggle={toggleUnits} variant="outline-light" />
           </div>
         </div>
@@ -101,6 +118,8 @@ export function HomePage() {
                     weather={current}
                     isSaved={hasLocation(activeId!)}
                     onSaveToggle={handleSaveToggle}
+                    onRefresh={refetchCurrent}
+                    lastRefreshed={lastCurrentFetch}
                   />
                   {hourly.length > 0 && <Hourly24 hours={hourly} units={units} />}
                   {daily.length > 0 && <Forecast10Day days={daily} units={units} />}

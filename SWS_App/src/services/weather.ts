@@ -18,10 +18,15 @@ interface CacheEntry<T> {
 }
 
 const cache = new Map<string, CacheEntry<unknown>>()
-const TTL_MS = 10 * 60 * 1000
+const CURRENT_TTL_MS = 60 * 1000
+const FORECAST_TTL_MS = 30 * 60 * 1000
 
 export function clearWeatherCache(): void {
   cache.clear()
+}
+
+export function clearCurrentWeatherCache(lat: number, lon: number, units: Units): void {
+  cache.delete(`current,${lat},${lon},${units}`)
 }
 
 function getCached<T>(key: string): T | null {
@@ -34,8 +39,8 @@ function getCached<T>(key: string): T | null {
   return entry.data as T
 }
 
-function setCached<T>(key: string, data: T): void {
-  cache.set(key, { data, expiresAt: Date.now() + TTL_MS })
+function setCached<T>(key: string, data: T, ttl: number): void {
+  cache.set(key, { data, expiresAt: Date.now() + ttl })
 }
 
 const BASE_URL = 'https://api.open-meteo.com/v1/forecast'
@@ -89,7 +94,7 @@ export async function getCurrentWeather(lat: number, lon: number, units: Units):
     units,
   }
 
-  setCached(key, result)
+  setCached(key, result, CURRENT_TTL_MS)
   return result
 }
 
@@ -137,7 +142,7 @@ export async function getDailyForecast(lat: number, lon: number, units: Units): 
     sunset: data.daily.sunset[i],
   }))
 
-  setCached(key, result)
+  setCached(key, result, FORECAST_TTL_MS)
   return result
 }
 
@@ -176,6 +181,6 @@ export async function getHourlyForecast(lat: number, lon: number, units: Units):
     weatherCode: data.hourly.weather_code[sliceStart + i],
   }))
 
-  setCached(key, result)
+  setCached(key, result, FORECAST_TTL_MS)
   return result
 }

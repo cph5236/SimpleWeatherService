@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { getCurrentWeather, getDailyForecast, getHourlyForecast } from '../services/weather'
+import {
+  clearCurrentWeatherCache,
+  getCurrentWeather,
+  getDailyForecast,
+  getHourlyForecast,
+} from '../services/weather'
 import type { CurrentWeather, DailyForecast, HourlyForecast, Location, Units } from '../types/weather'
 
 interface WeatherState {
@@ -13,7 +18,7 @@ interface WeatherState {
 export function useWeather(
   location: Location | null,
   units: Units
-): WeatherState & { refetch: () => void } {
+): WeatherState & { refetch: () => void; refetchCurrent: () => void; lastCurrentFetch: number } {
   const [state, setState] = useState<WeatherState>({
     current: null,
     daily: [],
@@ -21,6 +26,7 @@ export function useWeather(
     loading: false,
     error: null,
   })
+  const [lastCurrentFetch, setLastCurrentFetch] = useState(0)
 
   const fetchCountRef = useRef(0)
 
@@ -37,6 +43,7 @@ export function useWeather(
     ])
       .then(([current, daily, hourly]) => {
         if (fetchId !== fetchCountRef.current) return
+        setLastCurrentFetch(Date.now())
         setState({ current, daily, hourly, loading: false, error: null })
       })
       .catch((err: unknown) => {
@@ -46,10 +53,25 @@ export function useWeather(
       })
   }
 
+  function refetchCurrent() {
+    if (!location) return
+    clearCurrentWeatherCache(location.lat, location.lon, units)
+
+    getCurrentWeather(location.lat, location.lon, units)
+      .then((current) => {
+        setLastCurrentFetch(Date.now())
+        setState((prev) => ({ ...prev, current }))
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : 'Failed to fetch weather data'
+        setState((prev) => ({ ...prev, error: message }))
+      })
+  }
+
   useEffect(() => {
     fetch_()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location?.lat, location?.lon, units])
 
-  return { ...state, refetch: fetch_ }
+  return { ...state, refetch: fetch_, refetchCurrent, lastCurrentFetch }
 }
