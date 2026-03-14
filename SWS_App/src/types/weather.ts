@@ -25,6 +25,7 @@ export interface HourlyForecast {
   precipProbability: number
   windSpeed: number
   weatherCode: number
+  uvIndex: number
 }
 
 export interface DailyForecast {
@@ -35,6 +36,7 @@ export interface DailyForecast {
   feelsLikeMin: number
   precipProbability: number
   precipitationSum: number
+  snowfallSum: number
   weatherCode: number
   windSpeedMax: number
   uvIndexMax: number

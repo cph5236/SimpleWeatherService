@@ -106,7 +106,7 @@ export async function getDailyForecast(lat: number, lon: number, units: Units): 
   const url =
     `${BASE_URL}?latitude=${lat}&longitude=${lon}` +
     `&daily=temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,` +
-    `precipitation_probability_max,precipitation_sum,weather_code,wind_speed_10m_max,uv_index_max,sunrise,sunset&forecast_days=10` +
+    `precipitation_probability_max,precipitation_sum,snowfall_sum,weather_code,wind_speed_10m_max,uv_index_max,sunrise,sunset&forecast_days=10` +
     unitParams(units) + '&timezone=auto'
 
   const json = await fetchWeather(url)
@@ -119,6 +119,7 @@ export async function getDailyForecast(lat: number, lon: number, units: Units): 
       apparent_temperature_min: number[]
       precipitation_probability_max: number[]
       precipitation_sum: number[]
+      snowfall_sum: number[]
       weather_code: number[]
       wind_speed_10m_max: number[]
       uv_index_max: number[]
@@ -135,6 +136,7 @@ export async function getDailyForecast(lat: number, lon: number, units: Units): 
     feelsLikeMin: data.daily.apparent_temperature_min[i],
     precipProbability: data.daily.precipitation_probability_max[i] ?? 0,
     precipitationSum: data.daily.precipitation_sum[i] ?? 0,
+    snowfallSum: data.daily.snowfall_sum[i] ?? 0,
     weatherCode: data.daily.weather_code[i],
     windSpeedMax: data.daily.wind_speed_10m_max[i],
     uvIndexMax: data.daily.uv_index_max[i],
@@ -153,7 +155,7 @@ export async function getHourlyForecast(lat: number, lon: number, units: Units):
 
   const url =
     `${BASE_URL}?latitude=${lat}&longitude=${lon}` +
-    `&hourly=temperature_2m,precipitation_probability,wind_speed_10m,weather_code&forecast_days=2` +
+    `&hourly=temperature_2m,precipitation_probability,wind_speed_10m,weather_code,uv_index&forecast_days=2` +
     unitParams(units) + '&timezone=auto'
 
   const json = await fetchWeather(url)
@@ -165,6 +167,7 @@ export async function getHourlyForecast(lat: number, lon: number, units: Units):
       precipitation_probability: number[]
       wind_speed_10m: number[]
       weather_code: number[]
+      uv_index: number[]
     }
   }
 
@@ -179,6 +182,7 @@ export async function getHourlyForecast(lat: number, lon: number, units: Units):
     precipProbability: data.hourly.precipitation_probability[sliceStart + i] ?? 0,
     windSpeed: data.hourly.wind_speed_10m[sliceStart + i],
     weatherCode: data.hourly.weather_code[sliceStart + i],
+    uvIndex: data.hourly.uv_index[sliceStart + i] ?? 0,
   }))
 
   setCached(key, result, FORECAST_TTL_MS)

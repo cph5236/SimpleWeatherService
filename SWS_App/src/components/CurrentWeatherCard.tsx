@@ -40,22 +40,15 @@ export function CurrentWeatherCard({
   const [secondsLeft, setSecondsLeft] = useState(0)
 
   useEffect(() => {
-    const remaining = Math.ceil((lastRefreshed + REFRESH_COOLDOWN_MS - Date.now()) / 1000)
-    if (remaining <= 0) {
-      setSecondsLeft(0)
-      return
+    const computeSeconds = () =>
+      Math.max(0, Math.ceil((lastRefreshed + REFRESH_COOLDOWN_MS - Date.now()) / 1000))
+
+    const initial = setTimeout(() => setSecondsLeft(computeSeconds()), 0)
+    const id = setInterval(() => setSecondsLeft(computeSeconds()), 1000)
+    return () => {
+      clearTimeout(initial)
+      clearInterval(id)
     }
-    setSecondsLeft(remaining)
-    const id = setInterval(() => {
-      const s = Math.ceil((lastRefreshed + REFRESH_COOLDOWN_MS - Date.now()) / 1000)
-      if (s <= 0) {
-        setSecondsLeft(0)
-        clearInterval(id)
-      } else {
-        setSecondsLeft(s)
-      }
-    }, 1000)
-    return () => clearInterval(id)
   }, [lastRefreshed])
 
   const canRefresh = secondsLeft === 0
