@@ -43,6 +43,7 @@ const mockDailyResponse = {
     apparent_temperature_min: [12, 10],
     precipitation_probability_max: [10, 30],
     precipitation_sum: [0, 2.4],
+    snowfall_sum: [0, 0.5],
     weather_code: [1, 61],
     wind_speed_10m_max: [18, 25],
     uv_index_max: [4, 2],
@@ -65,6 +66,7 @@ const mockHourlyResponse = {
     precipitation_probability: Array.from({ length: 48 }, () => 5),
     wind_speed_10m: Array.from({ length: 48 }, () => 10),
     weather_code: Array.from({ length: 48 }, () => 0),
+    uv_index: Array.from({ length: 48 }, () => 3),
   },
 }
 
@@ -131,6 +133,7 @@ describe('getDailyForecast', () => {
       feelsLikeMin: 12,
       precipProbability: 10,
       precipitationSum: 0,
+      snowfallSum: 0,
       weatherCode: 1,
       windSpeedMax: 18,
       uvIndexMax: 4,
@@ -155,6 +158,7 @@ describe('getHourlyForecast', () => {
     expect(result[0]).toHaveProperty('precipProbability')
     expect(result[0]).toHaveProperty('windSpeed')
     expect(result[0]).toHaveProperty('weatherCode')
+    expect(result[0]).toHaveProperty('uvIndex')
   })
 
   it('starts from location local time, not UTC, when utc_offset_seconds is negative', async () => {
@@ -173,6 +177,7 @@ describe('getHourlyForecast', () => {
         precipitation_probability: Array.from({ length: 48 }, () => 0),
         wind_speed_10m: Array.from({ length: 48 }, () => 10),
         weather_code: Array.from({ length: 48 }, () => 0),
+        uv_index: Array.from({ length: 48 }, () => 0),
       },
     }
 
