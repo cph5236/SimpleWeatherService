@@ -1,7 +1,7 @@
 {
   "name": "sws-app",
   "private": true,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,7 +17,8 @@
     "cap:ios": "npx cap open ios",
     "version:patch": "npm version patch --no-git-tag-version",
     "version:minor": "npm version minor --no-git-tag-version",
-    "version:major": "npm version major --no-git-tag-version"
+    "version:major": "npm version major --no-git-tag-version",
+    "bump": "node ../scripts/bump-version.js"
   },
   "dependencies": {
     "@capacitor/android": "^8.2.0",

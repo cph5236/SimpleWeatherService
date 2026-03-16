@@ -1,3 +1,21 @@
+# Simple Weather Service
+
+## Releasing
+
+Before merging a release branch or tagging, bump the version with:
+
+```bash
+cd SWS_App
+npm run bump patch   # 0.0.4 → 0.0.5  (bug fixes)
+npm run bump minor   # 0.0.4 → 0.1.0  (new features)
+npm run bump major   # 0.0.4 → 1.0.0  (breaking changes)
+```
+
+This updates **both** `package.json` (version field) and `android/app/build.gradle`
+(`versionCode` incremented by 1, `versionName` set to match). Commit the result before tagging.
+
+---
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

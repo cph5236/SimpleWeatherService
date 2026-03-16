@@ -2,7 +2,7 @@ name: Mobile Builds
 
 on:
   push:
-    branches: [main]
+    branches: [main, release/*]
   workflow_dispatch:
 
 jobs:
@@ -66,7 +66,20 @@ jobs:
       - run: npm run build
       - run: npx cap sync ios
 
+      - name: Check signing secrets
+        id: check-signing-secrets
+        env:
+          CERT: ${{ secrets.IOS_CERTIFICATE_P12_BASE64 }}
+        run: |
+          if [[ -z "$CERT" ]]; then
+            echo "iOS signing secrets not configured — skipping signing and build steps"
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install certificate and provisioning profile
+        if: steps.check-signing-secrets.outputs.available == 'true'
         env:
           CERTIFICATE_P12: ${{ secrets.IOS_CERTIFICATE_P12_BASE64 }}
           CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
@@ -88,6 +101,7 @@ jobs:
             > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 
       - name: Build IPA
+        if: steps.check-signing-secrets.outputs.available == 'true'
         working-directory: SWS_App/ios/App
         run: |
           xcodebuild -workspace App.xcworkspace \
@@ -101,6 +115,7 @@ jobs:
             -exportOptionsPlist ExportOptions.plist
 
       - uses: actions/upload-artifact@v4
+        if: steps.check-signing-secrets.outputs.available == 'true'
         with:
           name: ios-ipa
           path: SWS_App/ios/App/build/ipa/App.ipa

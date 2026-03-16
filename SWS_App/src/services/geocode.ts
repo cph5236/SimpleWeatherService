@@ -22,6 +22,45 @@ interface GeocodingResponse {
   results?: GeocodingResult[]
 }
 
+const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/reverse'
+
+interface NominatimResponse {
+  address: {
+    city?: string
+    town?: string
+    village?: string
+    county?: string
+    state?: string
+    country: string
+  }
+}
+
+export async function reverseGeocode(lat: number, lon: number): Promise<Location> {
+  const url = `${NOMINATIM_URL}?lat=${lat}&lon=${lon}&format=json`
+  let res: Response
+  try {
+    res = await fetch(url, { headers: { 'Accept-Language': 'en' } })
+  } catch (err) {
+    throw new GeocodingError(`Network error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+  }
+  if (!res.ok) throw new GeocodingError(`Geocoding API error: ${res.statusText}`)
+
+  const data: NominatimResponse = await res.json()
+  const name =
+    data.address.city ??
+    data.address.town ??
+    data.address.village ??
+    data.address.county ??
+    'Current Location'
+  return {
+    name,
+    lat,
+    lon,
+    country: data.address.country ?? '',
+    ...(data.address.state ? { admin1: data.address.state } : {}),
+  }
+}
+
 export async function searchCity(query: string): Promise<Location[]> {
   if (!query.trim()) return []
 

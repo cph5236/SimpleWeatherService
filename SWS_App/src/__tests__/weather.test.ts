@@ -39,24 +39,36 @@ const mockDailyResponse = {
     time: ['2026-03-11', '2026-03-12'],
     temperature_2m_max: [24, 22],
     temperature_2m_min: [14, 12],
+    apparent_temperature_max: [22, 20],
+    apparent_temperature_min: [12, 10],
     precipitation_probability_max: [10, 30],
+    precipitation_sum: [0, 2.4],
+    snowfall_sum: [0, 0.5],
     weather_code: [1, 61],
+    wind_speed_10m_max: [18, 25],
+    wind_direction_10m_dominant: [270, 315],
+    uv_index_max: [4, 2],
+    relative_humidity_2m_mean: [65, 72],
     sunrise: ['2026-03-11T06:30', '2026-03-12T06:31'],
     sunset: ['2026-03-11T18:30', '2026-03-12T18:31'],
   },
 }
 
+const pad = (n: number) => String(n).padStart(2, '0')
+const hourlyTimes = Array.from({ length: 48 }, (_, i) => {
+  const day = i < 24 ? '2026-03-11' : '2026-03-12'
+  return `${day}T${pad(i % 24)}:00`
+})
+
 const mockHourlyResponse = {
+  utc_offset_seconds: 0,
   hourly: {
-    time: Array.from({ length: 48 }, (_, i) => {
-      const d = new Date('2026-03-11T00:00:00')
-      d.setHours(i)
-      return d.toISOString().slice(0, 16)
-    }),
+    time: hourlyTimes,
     temperature_2m: Array.from({ length: 48 }, (_, i) => 20 + i * 0.1),
     precipitation_probability: Array.from({ length: 48 }, () => 5),
     wind_speed_10m: Array.from({ length: 48 }, () => 10),
     weather_code: Array.from({ length: 48 }, () => 0),
+    uv_index: Array.from({ length: 48 }, () => 3),
   },
 }
 
@@ -119,8 +131,16 @@ describe('getDailyForecast', () => {
       date: '2026-03-11',
       tempMax: 24,
       tempMin: 14,
+      feelsLikeMax: 22,
+      feelsLikeMin: 12,
       precipProbability: 10,
+      precipitationSum: 0,
+      snowfallSum: 0,
       weatherCode: 1,
+      windSpeedMax: 18,
+      windDirectionDominant: 270,
+      uvIndexMax: 4,
+      humidityMean: 65,
       sunrise: '2026-03-11T06:30',
       sunset: '2026-03-11T18:30',
     })
@@ -142,5 +162,35 @@ describe('getHourlyForecast', () => {
     expect(result[0]).toHaveProperty('precipProbability')
     expect(result[0]).toHaveProperty('windSpeed')
     expect(result[0]).toHaveProperty('weatherCode')
+    expect(result[0]).toHaveProperty('uvIndex')
+  })
+
+  it('starts from location local time, not UTC, when utc_offset_seconds is negative', async () => {
+    // UTC 03:00 with UTC-5 offset → local time is 22:00 (10 PM) on the previous day
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-03-12T03:00:00Z'))
+
+    const offsetResponse = {
+      utc_offset_seconds: -18000, // UTC-5
+      hourly: {
+        time: Array.from({ length: 48 }, (_, i) => {
+          const day = i < 24 ? '2026-03-11' : '2026-03-12'
+          return `${day}T${pad(i % 24)}:00`
+        }),
+        temperature_2m: Array.from({ length: 48 }, () => 20),
+        precipitation_probability: Array.from({ length: 48 }, () => 0),
+        wind_speed_10m: Array.from({ length: 48 }, () => 10),
+        weather_code: Array.from({ length: 48 }, () => 0),
+        uv_index: Array.from({ length: 48 }, () => 0),
+      },
+    }
+
+    mockFetch.mockResolvedValueOnce(makeResponse(offsetResponse))
+    const result = await getHourlyForecast(51.5, -0.1, 'metric')
+
+    // Local 10 PM (hour 22), not UTC 3 AM (which would be "2026-03-12T03:00")
+    expect(result[0].time).toBe('2026-03-11T22:00')
+
+    vi.useRealTimers()
   })
 })

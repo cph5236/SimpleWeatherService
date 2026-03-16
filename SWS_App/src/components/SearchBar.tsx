@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { searchCity } from '../services/geocode'
+import { reverseGeocode, searchCity } from '../services/geocode'
 import type { Location } from '../types/weather'
 
 interface SearchBarProps {
@@ -11,16 +11,21 @@ export function SearchBar({ onSelect, placeholder = 'Search for a city…' }: Se
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<Location[]>([])
   const [loading, setLoading] = useState(false)
-  const [open, setOpen] = useState(false)
+  const [focused, setFocused] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
+  const [locating, setLocating] = useState(false)
+  const [locationError, setLocationError] = useState<string | null>(null)
   const inputId = useId()
   const listId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // totalItems = GPS option (1) + search results
+  const totalItems = 1 + results.length
+  const open = focused
+
   useEffect(() => {
     if (!query.trim()) {
       setResults([])
-      setOpen(false)
       return
     }
 
@@ -29,11 +34,9 @@ export function SearchBar({ onSelect, placeholder = 'Search for a city…' }: Se
       try {
         const locs = await searchCity(query)
         setResults(locs)
-        setOpen(locs.length > 0)
         setActiveIndex(-1)
       } catch {
         setResults([])
-        setOpen(false)
       } finally {
         setLoading(false)
       }
@@ -46,27 +49,53 @@ export function SearchBar({ onSelect, placeholder = 'Search for a city…' }: Se
     onSelect(loc)
     setQuery('')
     setResults([])
-    setOpen(false)
+    setFocused(false)
     setActiveIndex(-1)
+  }
+
+  function handleGpsSelect() {
+    if (!navigator.geolocation) return
+    setLocating(true)
+    setFocused(false)
+    setActiveIndex(-1)
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const loc = await reverseGeocode(pos.coords.latitude, pos.coords.longitude)
+          onSelect(loc)
+        } catch {
+          // silent fail — user stays on current location
+        } finally {
+          setLocating(false)
+        }
+      },
+      (err) => {
+        setLocating(false)
+        setLocationError(err.code === err.PERMISSION_DENIED ? 'Location access denied' : 'Could not get location')
+      },
+      { timeout: 10000 }
+    )
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (!open) return
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setActiveIndex((i) => Math.min(i + 1, results.length - 1))
+      setActiveIndex((i) => Math.min(i + 1, totalItems - 1))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       setActiveIndex((i) => Math.max(i - 1, 0))
     } else if (e.key === 'Enter') {
       e.preventDefault()
-      if (activeIndex >= 0 && results[activeIndex]) {
-        handleSelect(results[activeIndex])
-      } else if (results.length === 1) {
+      if (activeIndex === 0) {
+        handleGpsSelect()
+      } else if (activeIndex > 0 && results[activeIndex - 1]) {
+        handleSelect(results[activeIndex - 1])
+      } else if (activeIndex === -1 && results.length === 1) {
         handleSelect(results[0])
       }
     } else if (e.key === 'Escape') {
-      setOpen(false)
+      setFocused(false)
       setActiveIndex(-1)
     }
   }
@@ -83,10 +112,10 @@ export function SearchBar({ onSelect, placeholder = 'Search for a city…' }: Se
           className="form-control"
           placeholder={placeholder}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => { setQuery(e.target.value); setLocationError(null) }}
           onKeyDown={handleKeyDown}
-          onFocus={() => results.length > 0 && setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          onFocus={() => { setFocused(true); setLocationError(null) }}
+          onBlur={() => setTimeout(() => setFocused(false), 150)}
           role="combobox"
           aria-label="Search for a city"
           aria-expanded={open}
@@ -95,12 +124,14 @@ export function SearchBar({ onSelect, placeholder = 'Search for a city…' }: Se
           aria-activedescendant={activeOptionId}
           autoComplete="off"
         />
-        {loading && (
+        {(loading || locating) && (
           <span className="input-group-text">
             <span className="spinner-border spinner-border-sm" role="status" aria-label="Searching" />
           </span>
         )}
       </div>
+
+      {locationError && <div className="text-danger small mt-1 ps-1">{locationError}</div>}
 
       {open && (
         <ul
@@ -110,20 +141,30 @@ export function SearchBar({ onSelect, placeholder = 'Search for a city…' }: Se
           aria-label="City suggestions"
           style={{ top: '100%', marginTop: 2 }}
         >
+          <li
+            id={`${listId}-option-0`}
+            className={`list-group-item list-group-item-action d-flex align-items-center gap-2${activeIndex === 0 ? ' active' : ''}`}
+            role="option"
+            aria-selected={activeIndex === 0}
+            onMouseDown={handleGpsSelect}
+          >
+            <span aria-hidden="true">&#x1F4CD;</span>
+            <span>Use current location</span>
+          </li>
           {results.map((loc, i) => (
             <li
               key={`${loc.lat},${loc.lon}`}
-              id={`${listId}-option-${i}`}
-              className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center${i === activeIndex ? ' active' : ''}`}
+              id={`${listId}-option-${i + 1}`}
+              className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center${i + 1 === activeIndex ? ' active' : ''}`}
               role="option"
-              aria-selected={i === activeIndex}
+              aria-selected={i + 1 === activeIndex}
               onMouseDown={() => handleSelect(loc)}
             >
               <span>
                 {loc.name}
                 {loc.admin1 ? `, ${loc.admin1}` : ''}
               </span>
-              <small className={i === activeIndex ? 'text-white-50' : 'text-muted'}>{loc.country}</small>
+              <small className={i + 1 === activeIndex ? 'text-white-50' : 'text-muted'}>{loc.country}</small>
             </li>
           ))}
         </ul>
