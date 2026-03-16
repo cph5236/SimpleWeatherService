@@ -132,6 +132,18 @@ export function HomePage() {
           )}
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="text-center py-3 mt-auto border-top text-muted" style={{ fontSize: '0.75rem' }}>
+        <span>© {new Date().getFullYear()} HanlinSoftware</span>
+        <span className="mx-2">·</span>
+        <span>
+          Powered by{' '}
+          <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer" className="text-muted">
+            Open-Meteo
+          </a>
+        </span>
+      </footer>
     </div>
   )
 }
