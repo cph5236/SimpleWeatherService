@@ -14,6 +14,11 @@ function formatDay(dateStr: string, index: number): string {
   return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
+function degreesToCompass(deg: number): string {
+  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+  return dirs[Math.round(deg / 45) % 8]
+}
+
 function formatTime(isoStr: string): string {
   const date = new Date(isoStr)
   return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
@@ -263,7 +268,8 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
                     label="Feels like"
                     value={`High ${Math.round(day.feelsLikeMax)}${tempUnit} / Low ${Math.round(day.feelsLikeMin)}${tempUnit}`}
                   />
-                  <StatTile icon="💨" label="Wind max" value={`${Math.round(day.windSpeedMax)} ${windUnit}`} />
+                  <StatTile icon="💨" label="Wind max" value={`${Math.round(day.windSpeedMax)} ${windUnit} ${degreesToCompass(day.windDirectionDominant)}`} />
+                  <StatTile icon="💧" label="Humidity" value={`${Math.round(day.humidityMean)}%`} />
                   <StatTile icon="☔" label="Precipitation" value={`${day.precipitationSum.toFixed(1)} ${precipUnit}`} />
                   {day.snowfallSum > 0 && (
                     <StatTile icon="❄️" label="Snowfall" value={`${day.snowfallSum.toFixed(1)} ${snowUnit}`} />

@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import {
+  DAILY_TTL_MS,
+  HOURLY_TTL_MS,
   clearCurrentWeatherCache,
+  clearDailyWeatherCache,
+  clearHourlyWeatherCache,
   getCurrentWeather,
   getDailyForecast,
   getHourlyForecast,
@@ -27,6 +31,8 @@ export function useWeather(
     error: null,
   })
   const [lastCurrentFetch, setLastCurrentFetch] = useState(0)
+  const [lastHourlyFetch, setLastHourlyFetch] = useState(0)
+  const [lastDailyFetch, setLastDailyFetch] = useState(0)
 
   const fetchCountRef = useRef(0)
 
@@ -43,7 +49,10 @@ export function useWeather(
     ])
       .then(([current, daily, hourly]) => {
         if (fetchId !== fetchCountRef.current) return
-        setLastCurrentFetch(Date.now())
+        const ts = Date.now()
+        setLastCurrentFetch(ts)
+        setLastHourlyFetch(ts)
+        setLastDailyFetch(ts)
         setState({ current, daily, hourly, loading: false, error: null })
       })
       .catch((err: unknown) => {
@@ -55,12 +64,29 @@ export function useWeather(
 
   function refetchCurrent() {
     if (!location) return
+
     clearCurrentWeatherCache(location.lat, location.lon, units)
 
-    getCurrentWeather(location.lat, location.lon, units)
-      .then((current) => {
-        setLastCurrentFetch(Date.now())
-        setState((prev) => ({ ...prev, current }))
+    const now = Date.now()
+    const hourlyStale = now - lastHourlyFetch > HOURLY_TTL_MS
+    const dailyStale = now - lastDailyFetch > DAILY_TTL_MS
+
+    // Clear forecast caches only when TTL has expired; otherwise the service
+    // recomputes the hourly slice from cached raw data (free, no API call).
+    if (hourlyStale) clearHourlyWeatherCache(location.lat, location.lon, units)
+    if (dailyStale) clearDailyWeatherCache(location.lat, location.lon, units)
+
+    Promise.all([
+      getCurrentWeather(location.lat, location.lon, units),
+      getHourlyForecast(location.lat, location.lon, units),
+      getDailyForecast(location.lat, location.lon, units),
+    ])
+      .then(([current, hourly, daily]) => {
+        const ts = Date.now()
+        setLastCurrentFetch(ts)
+        if (hourlyStale) setLastHourlyFetch(ts)
+        if (dailyStale) setLastDailyFetch(ts)
+        setState((prev) => ({ ...prev, current, hourly, daily }))
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : 'Failed to fetch weather data'

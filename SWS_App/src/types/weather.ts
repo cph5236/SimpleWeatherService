@@ -39,7 +39,9 @@ export interface DailyForecast {
   snowfallSum: number
   weatherCode: number
   windSpeedMax: number
+  windDirectionDominant: number
   uvIndexMax: number
+  humidityMean: number
   sunrise: string
   sunset: string
 }
