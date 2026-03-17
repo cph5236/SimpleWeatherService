@@ -121,7 +121,7 @@ export function HomePage() {
                     onRefresh={refetchCurrent}
                     lastRefreshed={lastCurrentFetch}
                   />
-                  {hourly.length > 0 && <Hourly24 hours={hourly} units={units} />}
+                  {hourly.length > 0 && <Hourly24 hours={hourly} units={units} lat={activeLocation.lat} lon={activeLocation.lon} />}
                   {daily.length > 0 && <Forecast10Day days={daily} units={units} />}
                 </div>
               </div>
