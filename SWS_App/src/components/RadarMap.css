@@ -1,0 +1,90 @@
+.radar-map-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.radar-map-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0;
+}
+
+.radar-map-inner {
+  flex: 1;
+  min-height: 300px;
+  position: relative;
+}
+
+.radar-map-card .leaflet-container {
+  height: 100%;
+  width: 100%;
+  border-radius: 0 0 0.375rem 0.375rem;
+  z-index: 0;
+}
+
+.radar-map-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.radar-map-fullscreen .leaflet-container {
+  height: 100%;
+  width: 100%;
+  border-radius: 0;
+  flex: 1;
+}
+
+.radar-map-close-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1051;
+}
+
+.radar-map-timestamp {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 0.5rem;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+.radar-map-legend {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 0.5rem;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.65rem;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.radar-map-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.radar-map-legend-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}

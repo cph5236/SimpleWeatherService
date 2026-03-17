@@ -114,7 +114,6 @@ When modifying this project:
 
 ## Non-Goals
 
-- Radar or satellite maps
 - Severe weather alerts (unless explicitly added later)
 - Social or sharing features
 - Native mobile frameworks (Flutter, React Native, MAUI)
