@@ -170,6 +170,7 @@ interface HourlyRawData {
   temperature_2m: number[]
   precipitation_probability: number[]
   wind_speed_10m: number[]
+  wind_direction_10m: number[]
   weather_code: number[]
   uv_index: number[]
 }
@@ -179,10 +180,13 @@ export async function getHourlyForecast(lat: number, lon: number, units: Units):
 
   let raw = getCached<HourlyRawData>(key)
 
+  // Invalidate cache entries that predate the wind_direction_10m field addition.
+  if (raw && !raw.wind_direction_10m) raw = null
+
   if (!raw) {
     const url =
       `${BASE_URL}?latitude=${lat}&longitude=${lon}` +
-      `&hourly=temperature_2m,precipitation_probability,wind_speed_10m,weather_code,uv_index&forecast_days=2` +
+      `&hourly=temperature_2m,precipitation_probability,wind_speed_10m,wind_direction_10m,weather_code,uv_index&forecast_days=2` +
       unitParams(units) + '&timezone=auto'
 
     const json = await fetchWeather(url)
@@ -193,6 +197,7 @@ export async function getHourlyForecast(lat: number, lon: number, units: Units):
         temperature_2m: number[]
         precipitation_probability: number[]
         wind_speed_10m: number[]
+        wind_direction_10m: number[]
         weather_code: number[]
         uv_index: number[]
       }
@@ -204,6 +209,7 @@ export async function getHourlyForecast(lat: number, lon: number, units: Units):
       temperature_2m: data.hourly.temperature_2m,
       precipitation_probability: data.hourly.precipitation_probability,
       wind_speed_10m: data.hourly.wind_speed_10m,
+      wind_direction_10m: data.hourly.wind_direction_10m,
       weather_code: data.hourly.weather_code,
       uv_index: data.hourly.uv_index,
     }
@@ -212,16 +218,18 @@ export async function getHourlyForecast(lat: number, lon: number, units: Units):
   }
 
   // Always recompute the slice from current local time so past hours are trimmed.
-  const currentHour = new Date(Date.now() + raw.utcOffsetSeconds * 1000).toISOString().slice(0, 13)
-  const startIndex = raw.time.findIndex((t) => t >= currentHour)
+  const resolved = raw!
+  const currentHour = new Date(Date.now() + resolved.utcOffsetSeconds * 1000).toISOString().slice(0, 13)
+  const startIndex = resolved.time.findIndex((t) => t >= currentHour)
   const sliceStart = startIndex === -1 ? 0 : startIndex
 
-  return raw.time.slice(sliceStart, sliceStart + 24).map((time, i) => ({
+  return resolved.time.slice(sliceStart, sliceStart + 24).map((time, i) => ({
     time,
-    temperature: raw.temperature_2m[sliceStart + i],
-    precipProbability: raw.precipitation_probability[sliceStart + i] ?? 0,
-    windSpeed: raw.wind_speed_10m[sliceStart + i],
-    weatherCode: raw.weather_code[sliceStart + i],
-    uvIndex: raw.uv_index[sliceStart + i] ?? 0,
+    temperature: resolved.temperature_2m[sliceStart + i],
+    precipProbability: resolved.precipitation_probability[sliceStart + i] ?? 0,
+    windSpeed: resolved.wind_speed_10m[sliceStart + i],
+    windDirection: resolved.wind_direction_10m[sliceStart + i] ?? 0,
+    weatherCode: resolved.weather_code[sliceStart + i],
+    uvIndex: resolved.uv_index[sliceStart + i] ?? 0,
   }))
 }

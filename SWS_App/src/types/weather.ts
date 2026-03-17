@@ -24,8 +24,16 @@ export interface HourlyForecast {
   temperature: number
   precipProbability: number
   windSpeed: number
+  windDirection: number
   weatherCode: number
   uvIndex: number
+}
+
+export interface HourlyAQI {
+  time: string
+  usAqi: number
+  pm10: number
+  pm25: number
 }
 
 export interface DailyForecast {

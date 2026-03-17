@@ -1,11 +1,14 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { CurrentWeatherCard } from '../components/CurrentWeatherCard'
 import { Forecast10Day } from '../components/Forecast10Day'
 import { Hourly24 } from '../components/Hourly24'
-import { MapPlaceholder } from '../components/MapPlaceholder'
 import { SavedLocationsList } from '../components/SavedLocationsList'
 import { SearchBar } from '../components/SearchBar'
 import { UnitToggle } from '../components/UnitToggle'
+
+const RadarMap = lazy(() =>
+  import('../components/RadarMap').then((m) => ({ default: m.RadarMap }))
+)
 import { useSavedLocations } from '../hooks/useSavedLocations'
 import { useUnits } from '../hooks/useUnits'
 import { useWeather } from '../hooks/useWeather'
@@ -110,24 +113,38 @@ export function HomePage() {
 
           {/* Weather data */}
           {!loading && !error && current && activeLocation && (
-            <div className="row g-4">
-              <div className="col-12 col-lg-8">
-                <div className="d-flex flex-column gap-4">
-                  <CurrentWeatherCard
-                    location={activeLocation}
-                    weather={current}
-                    isSaved={hasLocation(activeId!)}
-                    onSaveToggle={handleSaveToggle}
-                    onRefresh={refetchCurrent}
-                    lastRefreshed={lastCurrentFetch}
-                  />
-                  {hourly.length > 0 && <Hourly24 hours={hourly} units={units} />}
-                  {daily.length > 0 && <Forecast10Day days={daily} units={units} />}
+            <div className="d-flex flex-column gap-4">
+              <CurrentWeatherCard
+                location={activeLocation}
+                weather={current}
+                isSaved={hasLocation(activeId!)}
+                onSaveToggle={handleSaveToggle}
+                onRefresh={refetchCurrent}
+                lastRefreshed={lastCurrentFetch}
+              />
+              <div className="row g-4">
+                {hourly.length > 0 && (
+                  <div className="col-12 col-lg-6">
+                    <Hourly24 hours={hourly} units={units} lat={activeLocation.lat} lon={activeLocation.lon} />
+                  </div>
+                )}
+                <div className={`col-12${hourly.length > 0 ? ' col-lg-6' : ''}`}>
+                  <Suspense
+                    fallback={
+                      <div className="card shadow-sm" style={{ minHeight: 340 }}>
+                        <div className="card-body d-flex align-items-center justify-content-center">
+                          <div className="spinner-border text-primary" role="status">
+                            <span className="visually-hidden">Loading map…</span>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  >
+                    <RadarMap lat={activeLocation.lat} lon={activeLocation.lon} />
+                  </Suspense>
                 </div>
               </div>
-              <div className="col-12 col-lg-4 d-none d-lg-block">
-                <MapPlaceholder />
-              </div>
+              {daily.length > 0 && <Forecast10Day days={daily} units={units} />}
             </div>
           )}
         </div>
