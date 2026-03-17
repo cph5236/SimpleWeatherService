@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import type { HourlyAQI } from '../types/weather'
 import { getHourlyAQI } from '../services/aqi'
 
@@ -18,11 +18,13 @@ const INITIAL_STATE: AQIState = {
 
 export function useAQI(lat: number | null, lon: number | null): AQIState & { fetch: () => void } {
   const [state, setState] = useState<AQIState>(INITIAL_STATE)
-  const prevLocationRef = useRef<{ lat: number | null; lon: number | null }>({ lat, lon })
+  const [prevLat, setPrevLat] = useState(lat)
+  const [prevLon, setPrevLon] = useState(lon)
 
   // Reset synchronously during render when location changes — never auto-fetch
-  if (prevLocationRef.current.lat !== lat || prevLocationRef.current.lon !== lon) {
-    prevLocationRef.current = { lat, lon }
+  if (prevLat !== lat || prevLon !== lon) {
+    setPrevLat(lat)
+    setPrevLon(lon)
     setState(INITIAL_STATE)
   }
 
