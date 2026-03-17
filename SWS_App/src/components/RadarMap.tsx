@@ -12,7 +12,7 @@ interface RadarMapProps {
   lon: number
 }
 
-const LEGEND_ITEMS = [
+const RAINVIEWER_LEGEND = [
   { color: '#96d2fa', label: 'Light' },
   { color: '#04e604', label: 'Moderate' },
   { color: '#f0f050', label: 'Heavy' },
@@ -21,15 +21,67 @@ const LEGEND_ITEMS = [
   { color: '#9600b4', label: 'Extreme' },
 ]
 
-function RadarLegend() {
+const NOAA_RAIN_LEGEND = [
+  { color: '#00ffff', label: 'Very Light (5+ dBZ)' },
+  { color: '#00ff00', label: 'Light (20+ dBZ)' },
+  { color: '#ffff00', label: 'Moderate (30+ dBZ)' },
+  { color: '#ff9000', label: 'Heavy (40+ dBZ)' },
+  { color: '#ff0000', label: 'Intense (50+ dBZ)' },
+  { color: '#be0000', label: 'Severe (60+ dBZ)' },
+  { color: '#ff00ff', label: 'Extreme (65+ dBZ)' },
+]
+
+const NOAA_WINTER_LEGEND = [
+  { color: '#add8e6', label: 'Flurries' },
+  { color: '#00ffff', label: 'Light Snow' },
+  { color: '#00ff00', label: 'Moderate Snow' },
+  { color: '#ffff00', label: 'Heavy Snow / Squall' },
+  { color: '#ff69b4', label: 'Freezing Rain / Sleet' },
+  { color: '#ff9000', label: 'Dangerous Accumulation' },
+]
+
+interface RadarLegendProps {
+  mapSource: MapSource
+  expanded: boolean
+  onToggle: () => void
+}
+
+function RadarLegend({ mapSource, expanded, onToggle }: RadarLegendProps) {
+  if (!expanded) {
+    return (
+      <button className="radar-map-legend-btn" onClick={onToggle}>
+        Legend ▾
+      </button>
+    )
+  }
+
+  const rainItems = mapSource === 'noaa' ? NOAA_RAIN_LEGEND : RAINVIEWER_LEGEND
+  const sectionTitle = mapSource === 'noaa' ? 'Rain & Storms' : 'Precipitation'
+
   return (
     <div className="radar-map-legend">
-      {LEGEND_ITEMS.map(({ color, label }) => (
+      <div className="radar-map-legend-header" onClick={onToggle}>
+        <span>{sectionTitle}</span>
+        <span>▴</span>
+      </div>
+      {rainItems.map(({ color, label }) => (
         <div key={label} className="radar-map-legend-item">
           <span className="radar-map-legend-swatch" style={{ background: color }} />
           <span>{label}</span>
         </div>
       ))}
+      {mapSource === 'noaa' && (
+        <>
+          <div className="radar-map-legend-divider" />
+          <div className="radar-map-legend-section">Winter Weather</div>
+          {NOAA_WINTER_LEGEND.map(({ color, label }) => (
+            <div key={label} className="radar-map-legend-item">
+              <span className="radar-map-legend-swatch" style={{ background: color }} />
+              <span>{label}</span>
+            </div>
+          ))}
+        </>
+      )}
     </div>
   )
 }
@@ -77,6 +129,7 @@ export function RadarMap({ lat, lon }: RadarMapProps) {
   const { frames, error } = useRadar()
   const [expanded, setExpanded] = useState(false)
   const [mapSource, setMapSource] = useState<MapSource>('noaa')
+  const [legendExpanded, setLegendExpanded] = useState(false)
 
   const latestFrame = frames.length > 0 ? frames[frames.length - 1] : null
 
@@ -174,7 +227,11 @@ export function RadarMap({ lat, lon }: RadarMapProps) {
           {mapSource === 'rainviewer' && error && (
             <div className="radar-map-timestamp text-danger">Radar unavailable</div>
           )}
-          <RadarLegend />
+          <RadarLegend
+            mapSource={mapSource}
+            expanded={legendExpanded}
+            onToggle={() => setLegendExpanded((e) => !e)}
+          />
         </div>
       </div>
     )
@@ -207,7 +264,11 @@ export function RadarMap({ lat, lon }: RadarMapProps) {
           {mapSource === 'rainviewer' && error && (
             <div className="radar-map-timestamp text-danger">Radar unavailable</div>
           )}
-          <RadarLegend />
+          <RadarLegend
+            mapSource={mapSource}
+            expanded={legendExpanded}
+            onToggle={() => setLegendExpanded((e) => !e)}
+          />
         </div>
       </div>
     </div>
