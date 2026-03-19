@@ -4,14 +4,16 @@ import { Forecast10Day } from '../components/Forecast10Day'
 import { Hourly24 } from '../components/Hourly24'
 import { SavedLocationsList } from '../components/SavedLocationsList'
 import { SearchBar } from '../components/SearchBar'
-import { UnitToggle } from '../components/UnitToggle'
+import { SettingsModal } from '../components/SettingsModal'
 
 const RadarMap = lazy(() =>
   import('../components/RadarMap').then((m) => ({ default: m.RadarMap }))
 )
 import { useSavedLocations } from '../hooks/useSavedLocations'
+import { useSavedLocationsWeather } from '../hooks/useSavedLocationsWeather'
 import { useUnits } from '../hooks/useUnits'
 import { useWeather } from '../hooks/useWeather'
+import type { Theme } from '../hooks/useTheme'
 import type { Location, SavedLocation } from '../types/weather'
 
 const LAST_LOCATION_KEY = 'sws-last-location'
@@ -25,12 +27,22 @@ function loadLastLocation(): Location | null {
   }
 }
 
-export function HomePage() {
+interface HomePageProps {
+  theme: Theme
+  onToggleTheme: () => void
+}
+
+export function HomePage({ theme, onToggleTheme }: HomePageProps) {
   const { units, toggleUnits } = useUnits()
   const { savedLocations, addLocation, removeLocation, hasLocation } = useSavedLocations()
   const [activeLocation, setActiveLocation] = useState<Location | null>(loadLastLocation)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const { current, daily, hourly, loading, error, refetch, refetchCurrent, lastCurrentFetch } =
     useWeather(activeLocation, units)
+  const { weatherMap: savedWeatherMap, loading: savedWeatherLoading } = useSavedLocationsWeather(
+    savedLocations,
+    units
+  )
 
   const activeId = activeLocation ? `${activeLocation.lat},${activeLocation.lon}` : null
 
@@ -55,27 +67,41 @@ export function HomePage() {
   return (
     <div className="min-vh-100 d-flex flex-column">
       {/* Header */}
-      <header className="text-white shadow-sm pb-3 pt-safe-area" style={{ backgroundColor: '#1d4ed8' }}>
+      <header
+        className="text-white shadow-sm pb-3 pt-safe-area"
+        style={{ backgroundColor: 'var(--sws-header-bg)' }}
+      >
         <div className="container-lg">
           <h1 className="fs-5 fw-bold mb-2 me-auto text-white">
             <span aria-hidden="true">🌤</span> Simple Weather Service
           </h1>
           <div className="d-flex align-items-center gap-1">
             <SearchBar onSelect={handleSelectLocation} />
-            <UnitToggle units={units} onToggle={toggleUnits} variant="outline-light" />
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-light"
+              onClick={() => setSettingsOpen(true)}
+              aria-label="Open settings"
+              title="Settings"
+            >
+              ⚙️
+            </button>
           </div>
         </div>
       </header>
 
       {/* Saved locations strip */}
       {savedLocations.length > 0 && (
-        <div className="border-bottom py-2" style={{ backgroundColor: '#1e40af' }}>
+        <div className="border-bottom py-2" style={{ backgroundColor: 'var(--sws-saved-strip-bg)' }}>
           <div className="container-lg">
             <SavedLocationsList
               locations={savedLocations}
               activeId={activeId}
               onSelect={handleSelectSaved}
               onRemove={removeLocation}
+              weatherMap={savedWeatherMap}
+              weatherLoading={savedWeatherLoading}
+              units={units}
             />
           </div>
         </div>
@@ -161,6 +187,15 @@ export function HomePage() {
           </a>
         </span>
       </footer>
+
+      <SettingsModal
+        show={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        theme={theme}
+        onToggleTheme={onToggleTheme}
+        units={units}
+        onToggleUnits={toggleUnits}
+      />
     </div>
   )
 }

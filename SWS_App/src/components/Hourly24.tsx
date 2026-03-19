@@ -96,7 +96,7 @@ export function Hourly24({ hours, units, lat, lon }: Hourly24Props) {
       style={{
         borderRadius: 12,
         padding: '1rem',
-        background: 'linear-gradient(160deg, #dbeafe 0%, #e0f2fe 100%)',
+        background: 'var(--sws-hourly-bg)',
       }}
     >
       <h3 className="fs-6 text-primary text-uppercase fw-semibold mb-2">24-Hour Forecast</h3>
@@ -114,8 +114,8 @@ export function Hourly24({ hours, units, lat, lon }: Hourly24Props) {
             className="rounded p-2 text-center flex-shrink-0"
             style={{
               minWidth: 72,
-              background: 'rgba(255,255,255,0.75)',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+              background: 'var(--sws-hourly-card-bg)',
+              boxShadow: 'var(--sws-hourly-card-shadow)',
             }}
           >
             <div className="small text-muted">{formatHour(hour.time)}</div>
@@ -134,7 +134,7 @@ export function Hourly24({ hours, units, lat, lon }: Hourly24Props) {
         ))}
       </div>
 
-      <hr style={{ borderColor: 'rgba(59,130,246,0.2)', margin: '0.5rem 0' }} />
+      <hr style={{ borderColor: 'var(--sws-hr-color)', margin: '0.5rem 0' }} />
 
       {/* Tab strip */}
       <div className="d-flex gap-1 mb-2" role="tablist">
@@ -149,8 +149,8 @@ export function Hourly24({ hours, units, lat, lon }: Hourly24Props) {
               style={{
                 background: 'transparent',
                 border: 'none',
-                borderBottom: isActive ? '2px solid #3b82f6' : '2px solid transparent',
-                color: isActive ? '#3b82f6' : '#94a3b8',
+                borderBottom: isActive ? '2px solid var(--sws-accent)' : '2px solid transparent',
+                color: isActive ? 'var(--sws-accent)' : 'var(--sws-text-muted)',
                 fontSize: '0.75rem',
                 fontWeight: isActive ? 600 : 500,
                 padding: '4px 10px',
@@ -206,7 +206,7 @@ export function Hourly24({ hours, units, lat, lon }: Hourly24Props) {
                       aria-label={`UV ${uv} at ${formatHour(hour.time)}`}
                     />
                   </div>
-                  <div style={{ width: 28, height: 2, backgroundColor: 'rgba(0,0,0,0.12)' }} />
+                  <div style={{ width: 28, height: 2, backgroundColor: 'var(--sws-border-subtle)' }} />
                   <div className="mt-1 text-muted" style={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>
                     {formatHour(hour.time)}
                   </div>
@@ -280,17 +280,17 @@ export function Hourly24({ hours, units, lat, lon }: Hourly24Props) {
                     style={{ transform: `rotate(${hour.windDirection}deg)` }}
                     aria-label={`Wind from ${cardinal}`}
                   >
-                    <polygon points="12,1 15,13 12,10 9,13" fill="#38bdf8" />
-                    <rect x="11" y="10" width="2" height="28" rx="1" fill="#38bdf8" opacity="0.65" />
+                    <polygon points="12,1 15,13 12,10 9,13" fill="var(--sws-wind-arrow)" />
+                    <rect x="11" y="10" width="2" height="28" rx="1" fill="var(--sws-wind-arrow)" opacity="0.65" />
                   </svg>
-                  <div className="fw-semibold mt-1" style={{ fontSize: '0.75rem', color: '#475569' }}>
+                  <div className="fw-semibold mt-1" style={{ fontSize: '0.75rem', color: 'var(--sws-wind-cardinal)' }}>
                     {cardinal}
                   </div>
                   <div className="d-flex align-items-baseline gap-1">
                     <span className="fw-bold" style={{ color, fontSize: '1rem' }}>
                       {Math.round(hour.windSpeed)}
                     </span>
-                    <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{windUnit}</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--sws-wind-unit)' }}>{windUnit}</span>
                   </div>
                   <div className="mt-1 text-muted" style={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>
                     {formatHour(hour.time)}

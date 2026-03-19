@@ -151,9 +151,14 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 ```bash
 cd SWS_App
 npm install
-npm run build
+npm run build:mobile
 npx cap sync android
 npx cap run android
+
+-- Wireless ADB --
+adb pair <ip>:<pairing-port>
+# Enter the 6-digit code shown on screen
+
 ```
 
 Capacitor will list connected devices and emulators. Select yours, or target directly:
@@ -243,4 +248,4 @@ Produces signed release artifacts for both platforms:
 
 ## Non-Goals
 
-This app intentionally does not include radar maps, severe weather alerts, social sharing, native mobile wrappers, ads, or upsell patterns. See [CLAUDE.md](CLAUDE.md) for the full project philosophy.
+social sharing, native mobile wrappers, ads, or upsell patterns. See [CLAUDE.md](CLAUDE.md) for the full project philosophy.

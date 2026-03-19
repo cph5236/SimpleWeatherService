@@ -29,7 +29,7 @@
   position: fixed;
   inset: 0;
   z-index: 1050;
-  background: #fff;
+  background: var(--sws-radar-fullscreen-bg);
   display: flex;
   flex-direction: column;
 }
@@ -41,10 +41,14 @@
   flex: 1;
 }
 
+.radar-map-fullscreen .leaflet-top {
+  top: env(safe-area-inset-top);
+}
+
 .radar-map-close-btn {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: calc(0.75rem + env(safe-area-inset-top));
+  right: calc(0.75rem + env(safe-area-inset-right));
   z-index: 1051;
 }
 
@@ -53,7 +57,7 @@
   bottom: 3.5rem;
   left: 0.5rem;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--sws-radar-overlay-bg);
   padding: 0.2rem 0.5rem;
   border-radius: 0.25rem;
   font-size: 0.75rem;
@@ -65,8 +69,8 @@
   bottom: 3.5rem;
   right: 0.5rem;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(0, 0, 0, 0.3);
+  background: var(--sws-radar-overlay-bg);
+  border: 1px solid var(--sws-border);
   border-radius: 0.25rem;
   font-size: 0.7rem;
   padding: 0.2rem 0.5rem;
@@ -74,7 +78,7 @@
 }
 
 .radar-map-legend-btn:hover {
-  background: rgba(255, 255, 255, 1);
+  background: var(--sws-surface-primary);
 }
 
 .radar-map-legend {
@@ -82,8 +86,8 @@
   bottom: 3.5rem;
   right: 0.5rem;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(0, 0, 0, 0.3);
+  background: var(--sws-radar-overlay-bg);
+  border: 1px solid var(--sws-border);
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
   font-size: 0.65rem;
@@ -113,7 +117,7 @@
 }
 
 .radar-map-legend-divider {
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  border-top: 1px solid var(--sws-border);
   margin: 4px 0;
 }
 

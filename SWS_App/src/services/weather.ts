@@ -70,6 +70,62 @@ async function fetchWeather(url: string): Promise<unknown> {
   return res.json()
 }
 
+export interface LocationWeather {
+  temperature: number
+  weatherCode: number
+  isDay: boolean
+}
+
+export async function getBatchCurrentWeather(
+  locations: Array<{ lat: number; lon: number; id: string }>,
+  units: Units
+): Promise<Map<string, LocationWeather>> {
+  if (locations.length === 0) return new Map()
+
+  const result = new Map<string, LocationWeather>()
+  const uncached: Array<{ lat: number; lon: number; id: string }> = []
+
+  for (const loc of locations) {
+    const key = `saved-batch,${loc.lat},${loc.lon},${units}`
+    const cached = getCached<LocationWeather>(key)
+    if (cached) {
+      result.set(loc.id, cached)
+    } else {
+      uncached.push(loc)
+    }
+  }
+
+  if (uncached.length > 0) {
+    const lats = uncached.map((l) => l.lat).join(',')
+    const lons = uncached.map((l) => l.lon).join(',')
+    const url =
+      `${BASE_URL}?latitude=${lats}&longitude=${lons}` +
+      `&current=temperature_2m,weather_code,is_day` +
+      unitParams(units) +
+      '&forecast_days=1&timezone=auto'
+
+    const json = await fetchWeather(url)
+
+    // Open-Meteo returns a plain object for N=1, array for N>1
+    const responses = Array.isArray(json)
+      ? (json as Array<{ current: { temperature_2m: number; weather_code: number; is_day: number } }>)
+      : [json as { current: { temperature_2m: number; weather_code: number; is_day: number } }]
+
+    responses.forEach((item, i) => {
+      const loc = uncached[i]
+      const weather: LocationWeather = {
+        temperature: item.current.temperature_2m,
+        weatherCode: item.current.weather_code,
+        isDay: item.current.is_day === 1,
+      }
+      setCached(`saved-batch,${loc.lat},${loc.lon},${units}`, weather, CURRENT_TTL_MS)
+      result.set(loc.id, weather)
+    })
+  }
+
+  return result
+}
+
 export async function getCurrentWeather(lat: number, lon: number, units: Units): Promise<CurrentWeather> {
   const key = `current,${lat},${lon},${units}`
   const cached = getCached<CurrentWeather>(key)

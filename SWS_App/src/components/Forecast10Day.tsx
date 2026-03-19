@@ -34,7 +34,7 @@ function StatTile({ icon, label, value }: StatTileProps) {
   return (
     <div
       style={{
-        background: '#fff',
+        background: 'var(--sws-stat-tile-bg)',
         borderRadius: 10,
         padding: '8px 12px',
         display: 'flex',
@@ -43,10 +43,10 @@ function StatTile({ icon, label, value }: StatTileProps) {
         boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
       }}
     >
-      <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.07em', color: '#94a3b8' }}>
+      <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--sws-text-muted)' }}>
         {icon} {label}
       </span>
-      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e293b' }}>{value}</span>
+      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--sws-text-primary)' }}>{value}</span>
     </div>
   )
 }
@@ -75,7 +75,7 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
           textTransform: 'uppercase',
           letterSpacing: '0.1em',
           fontWeight: 700,
-          color: '#3b82f6',
+          color: 'var(--sws-accent)',
           marginBottom: '0.6rem',
         }}
       >
@@ -86,9 +86,9 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
         style={{
           borderRadius: 16,
           overflow: 'hidden',
-          border: '1px solid #e2e8f0',
+          border: '1px solid var(--sws-border)',
           boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-          background: '#fff',
+          background: 'var(--sws-surface-primary)',
         }}
       >
         {days.map((day, i) => {
@@ -101,7 +101,7 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
             <div
               key={day.date}
               style={{
-                borderBottom: i < days.length - 1 ? '1px solid #f1f5f9' : 'none',
+                borderBottom: i < days.length - 1 ? '1px solid var(--sws-border-subtle)' : 'none',
               }}
             >
               {/* Row */}
@@ -117,7 +117,7 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
                   gap: 12,
                   padding: '12px 16px',
                   cursor: 'pointer',
-                  background: isHovered && !isExpanded ? '#f8fafc' : isExpanded ? '#f0f7ff' : 'transparent',
+                  background: isHovered && !isExpanded ? 'var(--sws-surface-hover)' : isExpanded ? 'var(--sws-surface-expanded)' : 'transparent',
                   transition: 'background 150ms ease',
                   userSelect: 'none',
                 }}
@@ -128,7 +128,7 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
                     minWidth: 100,
                     fontSize: '0.9rem',
                     fontWeight: i === 0 ? 700 : 500,
-                    color: i === 0 ? '#1d4ed8' : '#1e293b',
+                    color: i === 0 ? 'var(--sws-accent-muted)' : 'var(--sws-text-primary)',
                   }}
                 >
                   {formatDay(day.date, i)}
@@ -141,14 +141,25 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
 
                 {/* Temp range — mobile: compact text; sm+: visual bar */}
                 {/* Mobile text fallback */}
-                <span
+                <div
                   className="d-sm-none"
-                  style={{ fontSize: '0.8rem', color: '#64748b', whiteSpace: 'nowrap' }}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}
                 >
-                  <span style={{ fontWeight: 500 }}>{Math.round(day.tempMin)}</span>
-                  <span style={{ color: '#cbd5e1' }}>–</span>
-                  <span style={{ fontWeight: 700, color: '#1e293b' }}>{Math.round(day.tempMax)}{tempUnit}</span>
-                </span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--sws-text-secondary)', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontWeight: 500 }}>{Math.round(day.tempMin)}</span>
+                    <span style={{ color: 'var(--sws-border)' }}>–</span>
+                    <span style={{ fontWeight: 700, color: 'var(--sws-text-primary)' }}>{Math.round(day.tempMax)}{tempUnit}</span>
+                  </span>
+                  <div
+                    style={{
+                      width: '100%',
+                      minWidth: 48,
+                      height: 4,
+                      borderRadius: 2,
+                      background: 'linear-gradient(90deg, #60a5fa, #fb923c)',
+                    }}
+                  />
+                </div>
 
                 {/* Desktop bar */}
                 <div className="d-none d-sm-block flex-grow-1" style={{ position: 'relative', height: 28, overflow: 'visible' }}>
@@ -161,7 +172,7 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
                       transform: 'translateX(-50%)',
                       fontSize: '0.65rem',
                       fontWeight: 500,
-                      color: '#64748b',
+                      color: 'var(--sws-text-secondary)',
                       whiteSpace: 'nowrap',
                       pointerEvents: 'none',
                     }}
@@ -177,7 +188,7 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
                       transform: 'translateX(-50%)',
                       fontSize: '0.65rem',
                       fontWeight: 700,
-                      color: '#1e293b',
+                      color: 'var(--sws-text-primary)',
                       whiteSpace: 'nowrap',
                       pointerEvents: 'none',
                     }}
@@ -193,7 +204,7 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
                       right: 0,
                       height: 6,
                       borderRadius: 3,
-                      background: '#e2e8f0',
+                      background: 'var(--sws-bar-track)',
                     }}
                   >
                     {/* Colored fill */}
@@ -217,8 +228,8 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
                     style={{
                       fontSize: '0.75rem',
                       fontWeight: 600,
-                      color: '#3b82f6',
-                      background: '#eff6ff',
+                      color: 'var(--sws-accent)',
+                      background: 'var(--sws-precip-badge-bg)',
                       borderRadius: 20,
                       padding: '2px 8px',
                       minWidth: 52,
@@ -239,7 +250,7 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
                   fill="none"
                   aria-hidden="true"
                   style={{
-                    color: '#94a3b8',
+                    color: 'var(--sws-text-muted)',
                     transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
                     transition: 'transform 200ms ease',
                     flexShrink: 0,
@@ -253,9 +264,9 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
               {isExpanded && (
                 <div
                   style={{
-                    background: '#f8fafc',
-                    borderTop: '1px solid #e2e8f0',
-                    borderLeft: '4px solid #3b82f6',
+                    background: 'var(--sws-surface-secondary)',
+                    borderTop: '1px solid var(--sws-border)',
+                    borderLeft: '4px solid var(--sws-accent)',
                     padding: '14px 16px',
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))',

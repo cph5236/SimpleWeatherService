@@ -1,10 +1,77 @@
+:root {
+  --sws-bg-page: #eff6ff;
+  --sws-header-bg: #1d4ed8;
+  --sws-saved-strip-bg: #1e40af;
+  --sws-surface-primary: #ffffff;
+  --sws-surface-secondary: #f8fafc;
+  --sws-surface-hover: #f8fafc;
+  --sws-surface-expanded: #f0f7ff;
+  --sws-border: #e2e8f0;
+  --sws-border-subtle: #f1f5f9;
+  --sws-bar-track: #e2e8f0;
+  --sws-accent: #3b82f6;
+  --sws-accent-muted: #1d4ed8;
+  --sws-text-primary: #1e293b;
+  --sws-text-secondary: #64748b;
+  --sws-text-muted: #94a3b8;
+  --sws-hr-color: rgba(59, 130, 246, 0.2);
+  --sws-hourly-bg: linear-gradient(160deg, #dbeafe 0%, #e0f2fe 100%);
+  --sws-hourly-card-bg: rgba(255, 255, 255, 0.75);
+  --sws-hourly-card-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  --sws-stat-tile-bg: #ffffff;
+  --sws-precip-badge-bg: #eff6ff;
+  --sws-wind-arrow: #38bdf8;
+  --sws-wind-cardinal: #475569;
+  --sws-wind-unit: #94a3b8;
+  --sws-radar-overlay-bg: rgba(255, 255, 255, 0.9);
+  --sws-radar-fullscreen-bg: #ffffff;
+  --sws-saved-card-active-bg: #eff6ff;
+}
+
+[data-bs-theme='dark'] {
+  --sws-bg-page: #0d1b2e;
+  --sws-header-bg: #091525;
+  --sws-saved-strip-bg: #0f1e33;
+  --sws-surface-primary: #142038;
+  --sws-surface-secondary: #1a2a4a;
+  --sws-surface-hover: #1a2a4a;
+  --sws-surface-expanded: #162240;
+  --sws-border: #2d4a7a;
+  --sws-border-subtle: #1e3258;
+  --sws-bar-track: #1e3258;
+  --sws-accent: #60a5fa;
+  --sws-accent-muted: #60a5fa;
+  --sws-text-primary: #d1d9e6;
+  --sws-text-secondary: #7a8fa8;
+  --sws-text-muted: #7a8fa8;
+  --sws-hr-color: rgba(93, 156, 236, 0.2);
+  --sws-hourly-bg: linear-gradient(160deg, #0f1e33 0%, #142038 100%);
+  --sws-hourly-card-bg: rgba(26, 42, 74, 0.85);
+  --sws-hourly-card-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  --sws-stat-tile-bg: #1a2a4a;
+  --sws-precip-badge-bg: #1a2a4a;
+  --sws-wind-arrow: #60a5fa;
+  --sws-wind-cardinal: #7a8fa8;
+  --sws-wind-unit: #7a8fa8;
+  --sws-radar-overlay-bg: rgba(9, 21, 37, 0.9);
+  --sws-radar-fullscreen-bg: #0d1b2e;
+  --sws-saved-card-active-bg: #162240;
+}
+
 body {
-  background-color: #eff6ff;
+  background-color: var(--sws-bg-page);
   min-height: 100vh;
 }
 
 #root {
   min-height: 100vh;
+}
+
+.sws-scroll-hide {
+  scrollbar-width: none;
+}
+.sws-scroll-hide::-webkit-scrollbar {
+  display: none;
 }
 
 .pt-safe-area {
