@@ -1,5 +1,4 @@
-import type { LocationWeather } from '../services/weather'
-import type { SavedLocation, Units } from '../types/weather'
+import type { CurrentWeather, SavedLocation, Units } from '../types/weather'
 import { getWeatherEmoji } from '../types/weather'
 
 const US_STATE_ABBREV: Record<string, string> = {
@@ -29,7 +28,7 @@ interface SavedLocationsListProps {
   activeId: string | null
   onSelect: (loc: SavedLocation) => void
   onRemove: (id: string) => void
-  weatherMap: Map<string, LocationWeather>
+  weatherMap: Map<string, CurrentWeather>
   weatherLoading: boolean
   units: Units
 }
@@ -59,7 +58,7 @@ export function SavedLocationsList({
             <div
               key={loc.id}
               role="listitem"
-              className="flex-shrink-0 rounded-3 border position-relative"
+              className="flex-shrink-0 rounded-3 border position-relative m-1"
               style={{
                 width: 128,
                 cursor: 'pointer',

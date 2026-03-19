@@ -21,7 +21,8 @@ interface WeatherState {
 
 export function useWeather(
   location: Location | null,
-  units: Units
+  units: Units,
+  prefetchedCurrent: CurrentWeather | null = null
 ): WeatherState & { refetch: () => void; refetchCurrent: () => void; lastCurrentFetch: number } {
   const [state, setState] = useState<WeatherState>({
     current: null,
@@ -35,6 +36,8 @@ export function useWeather(
   const [lastDailyFetch, setLastDailyFetch] = useState(0)
 
   const fetchCountRef = useRef(0)
+  const prefetchedRef = useRef(prefetchedCurrent)
+  prefetchedRef.current = prefetchedCurrent
 
   function fetch_() {
     if (!location) return
@@ -42,8 +45,14 @@ export function useWeather(
     const fetchId = ++fetchCountRef.current
     setState((prev) => ({ ...prev, loading: true, error: null }))
 
+    // Use pre-fetched current weather from the batch call if available;
+    // fall back to an individual getCurrentWeather request otherwise.
+    const currentPromise = prefetchedRef.current
+      ? Promise.resolve(prefetchedRef.current)
+      : getCurrentWeather(location.lat, location.lon, units)
+
     Promise.all([
-      getCurrentWeather(location.lat, location.lon, units),
+      currentPromise,
       getDailyForecast(location.lat, location.lon, units),
       getHourlyForecast(location.lat, location.lon, units),
     ])
@@ -98,6 +107,16 @@ export function useWeather(
     fetch_()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location?.lat, location?.lon, units])
+
+  // When prefetchedCurrent arrives (batch resolves) and useWeather is still loading,
+  // update the current weather immediately without waiting for daily/hourly.
+  useEffect(() => {
+    if (prefetchedCurrent && state.loading) {
+      setState((prev) => ({ ...prev, current: prefetchedCurrent }))
+      setLastCurrentFetch(Date.now())
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefetchedCurrent])
 
   return { ...state, refetch: fetch_, refetchCurrent, lastCurrentFetch }
 }

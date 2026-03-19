@@ -37,12 +37,10 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
   const { savedLocations, addLocation, removeLocation, hasLocation } = useSavedLocations()
   const [activeLocation, setActiveLocation] = useState<Location | null>(loadLastLocation)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const { weatherMap: savedWeatherMap, activeCurrent, loading: savedWeatherLoading } =
+    useSavedLocationsWeather(savedLocations, activeLocation, units)
   const { current, daily, hourly, loading, error, refetch, refetchCurrent, lastCurrentFetch } =
-    useWeather(activeLocation, units)
-  const { weatherMap: savedWeatherMap, loading: savedWeatherLoading } = useSavedLocationsWeather(
-    savedLocations,
-    units
-  )
+    useWeather(activeLocation, units, activeCurrent)
 
   const activeId = activeLocation ? `${activeLocation.lat},${activeLocation.lon}` : null
 

@@ -70,24 +70,30 @@ async function fetchWeather(url: string): Promise<unknown> {
   return res.json()
 }
 
-export interface LocationWeather {
-  temperature: number
-  weatherCode: number
-  isDay: boolean
+type BatchCurrentResponse = {
+  current: {
+    temperature_2m: number
+    apparent_temperature: number
+    relative_humidity_2m: number
+    wind_speed_10m: number
+    wind_direction_10m: number
+    weather_code: number
+    is_day: number
+  }
 }
 
 export async function getBatchCurrentWeather(
   locations: Array<{ lat: number; lon: number; id: string }>,
   units: Units
-): Promise<Map<string, LocationWeather>> {
+): Promise<Map<string, CurrentWeather>> {
   if (locations.length === 0) return new Map()
 
-  const result = new Map<string, LocationWeather>()
+  const result = new Map<string, CurrentWeather>()
   const uncached: Array<{ lat: number; lon: number; id: string }> = []
 
   for (const loc of locations) {
-    const key = `saved-batch,${loc.lat},${loc.lon},${units}`
-    const cached = getCached<LocationWeather>(key)
+    // Check the standard `current,` cache first (populated by both batch and individual calls)
+    const cached = getCached<CurrentWeather>(`current,${loc.lat},${loc.lon},${units}`)
     if (cached) {
       result.set(loc.id, cached)
     } else {
@@ -100,7 +106,7 @@ export async function getBatchCurrentWeather(
     const lons = uncached.map((l) => l.lon).join(',')
     const url =
       `${BASE_URL}?latitude=${lats}&longitude=${lons}` +
-      `&current=temperature_2m,weather_code,is_day` +
+      `&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code,is_day` +
       unitParams(units) +
       '&forecast_days=1&timezone=auto'
 
@@ -108,17 +114,23 @@ export async function getBatchCurrentWeather(
 
     // Open-Meteo returns a plain object for N=1, array for N>1
     const responses = Array.isArray(json)
-      ? (json as Array<{ current: { temperature_2m: number; weather_code: number; is_day: number } }>)
-      : [json as { current: { temperature_2m: number; weather_code: number; is_day: number } }]
+      ? (json as BatchCurrentResponse[])
+      : [json as BatchCurrentResponse]
 
     responses.forEach((item, i) => {
       const loc = uncached[i]
-      const weather: LocationWeather = {
+      const weather: CurrentWeather = {
         temperature: item.current.temperature_2m,
+        feelsLike: item.current.apparent_temperature,
+        humidity: item.current.relative_humidity_2m,
+        windSpeed: item.current.wind_speed_10m,
+        windDirection: item.current.wind_direction_10m,
         weatherCode: item.current.weather_code,
         isDay: item.current.is_day === 1,
+        units,
       }
-      setCached(`saved-batch,${loc.lat},${loc.lon},${units}`, weather, CURRENT_TTL_MS)
+      // Populate the standard current cache so getCurrentWeather() gets a cache hit
+      setCached(`current,${loc.lat},${loc.lon},${units}`, weather, CURRENT_TTL_MS)
       result.set(loc.id, weather)
     })
   }

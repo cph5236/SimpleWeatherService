@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { getWeatherEmoji } from '../types/weather'
 import type { HourlyForecast, Units } from '../types/weather'
 import { useAQI } from '../hooks/useAQI'
@@ -82,13 +82,40 @@ export function Hourly24({ hours, units, lat, lon }: Hourly24Props) {
   const [activeTab, setActiveTab] = useState<ForecastTab>('uv')
   const { data: aqiData, loading: aqiLoading, error: aqiError, fetch: fetchAQI } = useAQI(lat, lon)
 
+  const topRef = useRef<HTMLDivElement>(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
+  const isSyncing = useRef(false)
+
   const tempUnit = units === 'metric' ? '°C' : '°F'
   const windUnit = units === 'metric' ? 'km/h' : 'mph'
   const maxUV = Math.max(...hours.map((h) => h.uvIndex), 1)
 
+  function handleTopScroll() {
+    if (isSyncing.current) return
+    isSyncing.current = true
+    if (bottomRef.current && topRef.current) {
+      bottomRef.current.scrollLeft = topRef.current.scrollLeft
+    }
+    isSyncing.current = false
+  }
+
+  function handleBottomScroll() {
+    if (isSyncing.current) return
+    isSyncing.current = true
+    if (topRef.current && bottomRef.current) {
+      topRef.current.scrollLeft = bottomRef.current.scrollLeft
+    }
+    isSyncing.current = false
+  }
+
   function handleTabClick(tab: ForecastTab) {
     setActiveTab(tab)
     if (tab === 'aqi') fetchAQI()
+    requestAnimationFrame(() => {
+      if (bottomRef.current && topRef.current) {
+        bottomRef.current.scrollLeft = topRef.current.scrollLeft
+      }
+    })
   }
 
   return (
@@ -103,10 +130,12 @@ export function Hourly24({ hours, units, lat, lon }: Hourly24Props) {
 
       {/* Main cards row */}
       <div
+        ref={topRef}
         className="d-flex flex-nowrap gap-2 pb-2"
         style={{ overflowX: 'auto' }}
         role="region"
         aria-label="24-hour forecast"
+        onScroll={handleTopScroll}
       >
         {hours.map((hour) => (
           <div
@@ -166,9 +195,11 @@ export function Hourly24({ hours, units, lat, lon }: Hourly24Props) {
 
       {/* Detail row */}
       <div
+        ref={bottomRef}
         className="d-flex flex-nowrap gap-2 pb-1"
         style={{ overflowX: 'auto' }}
         role="tabpanel"
+        onScroll={handleBottomScroll}
       >
         {activeTab === 'uv' && (
           <>
