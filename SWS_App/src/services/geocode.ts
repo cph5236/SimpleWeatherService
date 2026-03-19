@@ -9,6 +9,83 @@ export class GeocodingError extends Error {
 
 const BASE_URL = 'https://geocoding-api.open-meteo.com/v1/search'
 
+const US_STATE_ABBREVIATIONS: Record<string, string> = {
+  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+  CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', FL: 'Florida', GA: 'Georgia',
+  HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa',
+  KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland',
+  MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri',
+  MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey',
+  NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio',
+  OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina',
+  SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont',
+  VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming',
+  DC: 'District of Columbia',
+}
+
+function parseQuery(raw: string): { cityName: string; stateName: string | null; countryCode: string | null } {
+  const match = raw.trim().match(/^(.+?)[\s,]+([a-zA-Z]{2})$/)
+  if (match) {
+    const abbrev = match[2].toUpperCase()
+    const stateName = US_STATE_ABBREVIATIONS[abbrev]
+    if (stateName) {
+      return { cityName: match[1].trim(), stateName, countryCode: 'US' }
+    }
+  }
+  return { cityName: raw.trim(), stateName: null, countryCode: null }
+}
+
+function getLocaleCountryCode(): string | null {
+  try {
+    const parts = navigator.language.split('-')
+    if (parts.length >= 2 && parts[parts.length - 1].length === 2) {
+      return parts[parts.length - 1].toUpperCase()
+    }
+  } catch {
+    // navigator not available
+  }
+  return null
+}
+
+// Photon (primary forward geocoding — OSM-backed, autocomplete-friendly)
+const PHOTON_URL = 'https://photon.komoot.io/api'
+
+interface PhotonProperties {
+  name: string
+  country?: string
+  state?: string
+}
+
+interface PhotonFeature {
+  geometry: { coordinates: [number, number] }
+  properties: PhotonProperties
+}
+
+interface PhotonResponse {
+  features?: PhotonFeature[]
+}
+
+async function fetchPhoton(cityName: string): Promise<Location[]> {
+  const url = `${PHOTON_URL}?q=${encodeURIComponent(cityName)}&limit=5&lang=en`
+  let res: Response
+  try {
+    res = await fetch(url)
+  } catch {
+    return []
+  }
+  if (!res.ok) return []
+  const data: PhotonResponse = await res.json()
+  if (!data.features?.length) return []
+  return data.features.map((f) => ({
+    name: f.properties.name,
+    lat: f.geometry.coordinates[1],
+    lon: f.geometry.coordinates[0],
+    country: f.properties.country ?? '',
+    ...(f.properties.state ? { admin1: f.properties.state } : {}),
+  }))
+}
+
+// Open-Meteo (fallback forward geocoding — GeoNames-backed)
 interface GeocodingResult {
   id: number
   name: string
@@ -61,10 +138,9 @@ export async function reverseGeocode(lat: number, lon: number): Promise<Location
   }
 }
 
-export async function searchCity(query: string): Promise<Location[]> {
-  if (!query.trim()) return []
-
-  const url = `${BASE_URL}?name=${encodeURIComponent(query.trim())}&count=5&language=en&format=json`
+async function fetchOpenMeteo(cityName: string, countryCode: string | null): Promise<Location[]> {
+  const countryParam = countryCode ? `&countryCode=${countryCode}` : ''
+  const url = `${BASE_URL}?name=${encodeURIComponent(cityName)}&count=5&language=en&format=json${countryParam}`
 
   let res: Response
   try {
@@ -88,4 +164,23 @@ export async function searchCity(query: string): Promise<Location[]> {
     country: r.country,
     ...(r.admin1 ? { admin1: r.admin1 } : {}),
   }))
+}
+
+export async function searchCity(query: string): Promise<Location[]> {
+  if (!query.trim()) return []
+
+  const { cityName, stateName, countryCode: parsedCountryCode } = parseQuery(query)
+  const countryCode = parsedCountryCode ?? getLocaleCountryCode()
+
+  const photonQuery = stateName ? `${cityName} ${stateName}` : cityName
+  const photonResults = await fetchPhoton(photonQuery)
+  if (photonResults.length > 0) return photonResults
+
+  // Photon empty or unavailable — fall back to Open-Meteo
+  if (countryCode) {
+    const meteoResults = await fetchOpenMeteo(cityName, countryCode)
+    if (meteoResults.length > 0) return meteoResults
+  }
+
+  return fetchOpenMeteo(cityName, null)
 }

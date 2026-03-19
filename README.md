@@ -32,7 +32,7 @@ The app will be available at [http://localhost:5173](http://localhost:5173) with
 
 ## Available Scripts
 
-All scripts are run from inside `my-app/`.
+All scripts are run from inside `SWS-App/`.
 
 | Script | Description |
 |---|---|

@@ -77,7 +77,7 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
             <SearchBar onSelect={handleSelectLocation} />
             <button
               type="button"
-              className="btn btn-sm btn-outline-light"
+              className="btn btn-sm btn-outline-secondary"
               onClick={() => setSettingsOpen(true)}
               aria-label="Open settings"
               title="Settings"

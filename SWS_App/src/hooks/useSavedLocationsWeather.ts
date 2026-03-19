@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer } from 'react'
 import { getBatchCurrentWeather } from '../services/weather'
 import type { CurrentWeather, Location, SavedLocation, Units } from '../types/weather'
 
@@ -8,14 +8,36 @@ interface UseSavedLocationsWeatherResult {
   loading: boolean
 }
 
+type State = {
+  weatherMap: Map<string, CurrentWeather>
+  activeCurrent: CurrentWeather | null
+  loading: boolean
+}
+
+type Action =
+  | { type: 'start' }
+  | { type: 'success'; map: Map<string, CurrentWeather>; activeCurrent: CurrentWeather | null }
+  | { type: 'done' }
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'start':
+      return { ...state, loading: true }
+    case 'success':
+      return { weatherMap: action.map, activeCurrent: action.activeCurrent, loading: false }
+    case 'done':
+      return { ...state, loading: false }
+  }
+}
+
+const initialState: State = { weatherMap: new Map(), activeCurrent: null, loading: false }
+
 export function useSavedLocationsWeather(
   savedLocations: SavedLocation[],
   activeLocation: Location | null,
   units: Units
 ): UseSavedLocationsWeatherResult {
-  const [weatherMap, setWeatherMap] = useState<Map<string, CurrentWeather>>(new Map())
-  const [activeCurrent, setActiveCurrent] = useState<CurrentWeather | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [state, dispatch] = useReducer(reducer, initialState)
 
   useEffect(() => {
     // Build deduplicated list: saved locations + active location (if not already saved)
@@ -29,32 +51,31 @@ export function useSavedLocationsWeather(
         : []),
     ]
 
-    if (allLocations.length === 0) {
-      setWeatherMap(new Map())
-      setActiveCurrent(null)
-      return
-    }
-
     let cancelled = false
-    setLoading(true)
 
-    getBatchCurrentWeather(allLocations, units)
+    const fetchPromise =
+      allLocations.length === 0
+        ? Promise.resolve(new Map<string, CurrentWeather>())
+        : getBatchCurrentWeather(allLocations, units)
+
+    fetchPromise
       .then((map) => {
         if (cancelled) return
-        setWeatherMap(map)
-        setActiveCurrent(activeId ? (map.get(activeId) ?? null) : null)
+        dispatch({ type: 'success', map, activeCurrent: activeId ? (map.get(activeId) ?? null) : null })
       })
       .catch((err) => {
         console.warn('useSavedLocationsWeather: failed to fetch batch weather', err)
       })
       .finally(() => {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) dispatch({ type: 'done' })
       })
+
+    dispatch({ type: 'start' })
 
     return () => {
       cancelled = true
     }
   }, [savedLocations, activeLocation, units])
 
-  return { weatherMap, activeCurrent, loading }
+  return state
 }
