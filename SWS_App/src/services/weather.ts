@@ -31,6 +31,11 @@ export function clearCurrentWeatherCache(lat: number, lon: number, units: Units)
   cache.delete(`current,${lat},${lon},${units}`)
 }
 
+export function getCurrentWeatherCachedAt(lat: number, lon: number, units: Units): number | null {
+  const entry = cache.get(`current,${lat},${lon},${units}`)
+  return entry ? entry.expiresAt - CURRENT_TTL_MS : null
+}
+
 export function clearHourlyWeatherCache(lat: number, lon: number, units: Units): void {
   cache.delete(`hourly,${lat},${lon},${units}`)
 }

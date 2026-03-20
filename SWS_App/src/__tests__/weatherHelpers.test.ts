@@ -65,7 +65,7 @@ describe('getWeatherEmoji', () => {
   })
 
   it('returns fog for codes 45 and 48', () => {
-    expect(getWeatherEmoji(45)).toBe('🌫️')
+    expect(getWeatherEmoji(45)).toBe('☁️')
   })
 
   it('returns thunderstorm for codes 96 and 99', () => {

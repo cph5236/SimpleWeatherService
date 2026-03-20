@@ -75,7 +75,7 @@ export function getWeatherDescription(code: number): string {
 export function getWeatherEmoji(code: number): string {
   if (code === 0) return '☀️'
   if (code <= 3) return '⛅'
-  if (code === 45 || code === 48) return '🌫️'
+  if (code === 45 || code === 48) return '☁️'
   if (code >= 51 && code <= 57) return '🌦️'
   if (code >= 61 && code <= 67) return '🌧️'
   if (code >= 71 && code <= 77) return '❄️'

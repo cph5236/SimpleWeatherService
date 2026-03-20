@@ -22,7 +22,7 @@ type Action =
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'start':
-      return { ...state, loading: true }
+      return { ...state, loading: true, activeCurrent: null }
     case 'success':
       return { weatherMap: action.map, activeCurrent: action.activeCurrent, loading: false }
     case 'done':
@@ -58,10 +58,18 @@ export function useSavedLocationsWeather(
         ? Promise.resolve(new Map<string, CurrentWeather>())
         : getBatchCurrentWeather(allLocations, units)
 
+    if (import.meta.env.DEV) {
+      console.log('[savedWeather] effect fired → dispatching start', { activeId })
+    }
+
     fetchPromise
       .then((map) => {
         if (cancelled) return
-        dispatch({ type: 'success', map, activeCurrent: activeId ? (map.get(activeId) ?? null) : null })
+        const activeCurrent = activeId ? (map.get(activeId) ?? null) : null
+        if (import.meta.env.DEV) {
+          console.log('[savedWeather] batch resolved', { activeId, activeTempFound: activeCurrent?.temperature ?? null })
+        }
+        dispatch({ type: 'success', map, activeCurrent })
       })
       .catch((err) => {
         console.warn('useSavedLocationsWeather: failed to fetch batch weather', err)
@@ -77,5 +85,11 @@ export function useSavedLocationsWeather(
     }
   }, [savedLocations, activeLocation, units])
 
-  return state
+  return {
+    weatherMap: state.weatherMap,
+    activeCurrent: activeLocation
+      ? (state.weatherMap.get(`${activeLocation.lat},${activeLocation.lon}`) ?? null)
+      : null,
+    loading: state.loading,
+  }
 }

@@ -6,6 +6,7 @@ import {
   clearDailyWeatherCache,
   clearHourlyWeatherCache,
   getCurrentWeather,
+  getCurrentWeatherCachedAt,
   getDailyForecast,
   getHourlyForecast,
 } from '../services/weather'
@@ -39,6 +40,11 @@ export function useWeather(
   const prefetchedRef = useRef(prefetchedCurrent)
   prefetchedRef.current = prefetchedCurrent
 
+  if (import.meta.env.DEV) {
+    const currentKey = location ? `${location.lat},${location.lon}` : null
+    console.log('[useWeather] render', { currentKey, prefetchedCurrent: prefetchedCurrent?.temperature ?? null })
+  }
+
   function fetch_() {
     if (!location) return
 
@@ -47,9 +53,14 @@ export function useWeather(
 
     // Use pre-fetched current weather from the batch call if available;
     // fall back to an individual getCurrentWeather request otherwise.
+    const usingPrefetch = !!prefetchedRef.current
     const currentPromise = prefetchedRef.current
       ? Promise.resolve(prefetchedRef.current)
       : getCurrentWeather(location.lat, location.lon, units)
+
+    if (import.meta.env.DEV) {
+      console.log('[useWeather] fetch_() fired', { key: `${location.lat},${location.lon}`, usingPrefetch, prefetchTemp: prefetchedRef.current?.temperature ?? null })
+    }
 
     Promise.all([
       currentPromise,
@@ -58,8 +69,11 @@ export function useWeather(
     ])
       .then(([current, daily, hourly]) => {
         if (fetchId !== fetchCountRef.current) return
+        if (import.meta.env.DEV) {
+          console.log('[useWeather] fetch_() resolved', { key: `${location.lat},${location.lon}`, temp: current.temperature, usingPrefetch })
+        }
         const ts = Date.now()
-        setLastCurrentFetch(ts)
+        setLastCurrentFetch(getCurrentWeatherCachedAt(location.lat, location.lon, units) ?? ts)
         setLastHourlyFetch(ts)
         setLastDailyFetch(ts)
         setState({ current, daily, hourly, loading: false, error: null })
@@ -92,7 +106,7 @@ export function useWeather(
     ])
       .then(([current, hourly, daily]) => {
         const ts = Date.now()
-        setLastCurrentFetch(ts)
+        setLastCurrentFetch(getCurrentWeatherCachedAt(location.lat, location.lon, units) ?? ts)
         if (hourlyStale) setLastHourlyFetch(ts)
         if (dailyStale) setLastDailyFetch(ts)
         setState((prev) => ({ ...prev, current, hourly, daily }))
@@ -111,9 +125,14 @@ export function useWeather(
   // When prefetchedCurrent arrives (batch resolves) and useWeather is still loading,
   // update the current weather immediately without waiting for daily/hourly.
   useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log('[useWeather] prefetchedCurrent effect', { temp: prefetchedCurrent?.temperature ?? null, loading: state.loading })
+    }
     if (prefetchedCurrent && state.loading) {
       setState((prev) => ({ ...prev, current: prefetchedCurrent }))
-      setLastCurrentFetch(Date.now())
+      setLastCurrentFetch(
+        location ? (getCurrentWeatherCachedAt(location.lat, location.lon, units) ?? Date.now()) : Date.now()
+      )
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefetchedCurrent])
