@@ -194,11 +194,11 @@ export function RadarMap({ lat, lon }: RadarMapProps) {
   const [mapSource, setMapSource] = useState<MapSource>('noaa')
   const [legendExpanded, setLegendExpanded] = useState(false)
 
-  const lastViewRef = useRef<{ center: [number, number]; zoom: number }>({ center: [lat, lon], zoom: 8 })
+  const [lastView, setLastView] = useState<{ center: [number, number]; zoom: number }>({ center: [lat, lon], zoom: 8 })
   const mapRef = useRef<LeafletMap | null>(null)
 
   const handleViewChange = useCallback((center: [number, number], zoom: number) => {
-    lastViewRef.current = { center, zoom }
+    setLastView({ center, zoom })
   }, [])
 
   const latestFrame = frames.length > 0 ? frames[frames.length - 1] : null
@@ -227,8 +227,8 @@ export function RadarMap({ lat, lon }: RadarMapProps) {
 
   const mapContent = (
     <MapContainer
-      center={lastViewRef.current.center}
-      zoom={lastViewRef.current.zoom}
+      center={lastView.center}
+      zoom={lastView.zoom}
       scrollWheelZoom={false}
       style={{ height: '100%', width: '100%' }}
     >
