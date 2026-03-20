@@ -134,3 +134,25 @@
   border-radius: 2px;
   flex-shrink: 0;
 }
+
+[data-bs-theme='dark'] .leaflet-bar a,
+[data-bs-theme='dark'] .leaflet-bar a:hover {
+  background-color: #142038;
+  color: #d1d9e6;
+  border-bottom-color: #2d4a7a;
+}
+
+[data-bs-theme='dark'] .leaflet-bar {
+  border-color: #2d4a7a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+[data-bs-theme='dark'] .leaflet-bar a.leaflet-disabled {
+  background-color: #0d1b2e;
+  color: #7a8fa8;
+}
+
+.radar-map-recenter-btn {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
