@@ -222,25 +222,21 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
                 </div>
 
                 {/* Precip badge */}
-                {day.precipProbability > 0 ? (
-                  <span
-                    aria-label={`${day.precipProbability}% precipitation chance`}
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      color: 'var(--sws-accent)',
-                      background: 'var(--sws-precip-badge-bg)',
-                      borderRadius: 20,
-                      padding: '2px 8px',
-                      minWidth: 52,
-                      textAlign: 'center',
-                    }}
-                  >
-                    💧 {day.precipProbability}%
-                  </span>
-                ) : (
-                  <span style={{ minWidth: 52 }} />
-                )}
+                <span
+                  aria-label={`${day.precipProbability}% precipitation chance`}
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: 'var(--sws-accent)',
+                    background: 'var(--sws-precip-badge-bg)',
+                    borderRadius: 20,
+                    padding: '2px 8px',
+                    minWidth: 52,
+                    textAlign: 'center',
+                  }}
+                >
+                  💧 {day.precipProbability}%
+                </span>
 
                 {/* Chevron */}
                 <svg
@@ -280,7 +276,7 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
                     value={`High ${Math.round(day.feelsLikeMax)}${tempUnit} / Low ${Math.round(day.feelsLikeMin)}${tempUnit}`}
                   />
                   <StatTile icon="💨" label="Wind max" value={`${Math.round(day.windSpeedMax)} ${windUnit} ${degreesToCompass(day.windDirectionDominant)}`} />
-                  <StatTile icon="💧" label="Humidity" value={`${Math.round(day.humidityMean)}%`} />
+                  <StatTile icon="💦" label="Humidity" value={`${Math.round(day.humidityMean)}%`} />
                   <StatTile icon="☔" label="Precipitation" value={`${day.precipitationSum.toFixed(1)} ${precipUnit}`} />
                   {day.snowfallSum > 0 && (
                     <StatTile icon="❄️" label="Snowfall" value={`${day.snowfallSum.toFixed(1)} ${snowUnit}`} />

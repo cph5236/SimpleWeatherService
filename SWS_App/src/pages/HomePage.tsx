@@ -9,6 +9,7 @@ import { SettingsModal } from '../components/SettingsModal'
 const RadarMap = lazy(() =>
   import('../components/RadarMap').then((m) => ({ default: m.RadarMap }))
 )
+import { usePullToRefresh } from '../hooks/usePullToRefresh'
 import { useSavedLocations } from '../hooks/useSavedLocations'
 import { useSavedLocationsWeather } from '../hooks/useSavedLocationsWeather'
 import { useUnits } from '../hooks/useUnits'
@@ -42,6 +43,8 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
   const { current, daily, hourly, loading, error, refetch, refetchCurrent, lastCurrentFetch } =
     useWeather(activeLocation, units, activeCurrent)
 
+  const { pullDistance, isPulling } = usePullToRefresh(refetchCurrent, lastCurrentFetch)
+
   const activeId = activeLocation ? `${activeLocation.lat},${activeLocation.lon}` : null
 
   function handleSelectLocation(loc: Location) {
@@ -64,6 +67,39 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
 
   return (
     <div className="min-vh-100 d-flex flex-column">
+      {/* Pull-to-refresh indicator */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1050,
+          display: 'flex',
+          justifyContent: 'center',
+          paddingTop: 8,
+          opacity: pullDistance > 0 ? Math.min(pullDistance / 40, 1) : 0,
+          transform: `translateY(${pullDistance > 0 ? Math.min(pullDistance - 40, 48) : -48}px)`,
+          transition: isPulling ? 'none' : 'transform 250ms ease, opacity 250ms ease',
+          pointerEvents: 'none',
+        }}
+      >
+        <div
+          style={{
+            background: 'var(--sws-surface-primary)',
+            borderRadius: 20,
+            padding: '6px 16px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+            fontSize: '0.8rem',
+            color: 'var(--sws-text-secondary)',
+            border: '1px solid var(--sws-border)',
+          }}
+        >
+          {pullDistance >= 80 ? '↑ Release to refresh' : '↓ Pull to refresh'}
+        </div>
+      </div>
+
       {/* Header */}
       <header
         className="text-white shadow-sm pb-3 pt-safe-area"
@@ -164,7 +200,7 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
                       </div>
                     }
                   >
-                    <RadarMap lat={activeLocation.lat} lon={activeLocation.lon} />
+                    <RadarMap lat={activeLocation.lat} lon={activeLocation.lon} country={activeLocation.country} />
                   </Suspense>
                 </div>
               </div>

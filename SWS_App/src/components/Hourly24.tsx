@@ -25,8 +25,8 @@ function formatHour(isoTime: string): string {
 
 function uvColor(uv: number): string {
   if (uv <= 2) return '#16a34a'
-  if (uv <= 5) return '#d97706'
-  if (uv <= 7) return '#ea580c'
+  if (uv <= 5) return '#eab308'
+  if (uv <= 7) return '#d97706'
   if (uv <= 10) return '#dc2626'
   return '#7c3aed'
 }
@@ -70,8 +70,8 @@ function aqiLabel(aqi: number): string {
 
 const UV_LEGEND = [
   { label: 'Low', color: '#16a34a' },
-  { label: 'Moderate', color: '#d97706' },
-  { label: 'High', color: '#ea580c' },
+  { label: 'Moderate', color: '#eab308' },
+  { label: 'High', color: '#d97706' },
   { label: 'Very High', color: '#dc2626' },
   { label: 'Extreme', color: '#7c3aed' },
 ]
