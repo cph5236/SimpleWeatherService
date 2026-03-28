@@ -352,7 +352,7 @@ export function Hourly24({ hours, units, lat, lon }: Hourly24Props) {
 
       {/* UV legend shown when on UV tab */}
       {activeTab === 'uv' && (
-        <div className="d-flex gap-3 flex-wrap mt-1">
+        <div className="d-flex gap-2 flex-wrap mt-1">
           {UV_LEGEND.map(({ label, color }) => (
             <div key={label} className="d-flex align-items-center gap-1" style={{ fontSize: '0.7rem' }}>
               <div style={{ width: 10, height: 10, backgroundColor: color, borderRadius: 2 }} />

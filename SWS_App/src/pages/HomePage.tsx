@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { CurrentWeatherCard } from '../components/CurrentWeatherCard'
 import { Forecast10Day } from '../components/Forecast10Day'
 import { Hourly24 } from '../components/Hourly24'
@@ -14,6 +14,7 @@ import { useSavedLocations } from '../hooks/useSavedLocations'
 import { useSavedLocationsWeather } from '../hooks/useSavedLocationsWeather'
 import { useUnits } from '../hooks/useUnits'
 import { useWeather } from '../hooks/useWeather'
+import { useWidgetLocation } from '../hooks/useWidgetLocation'
 import type { Theme } from '../hooks/useTheme'
 import type { Location, SavedLocation } from '../types/weather'
 
@@ -44,6 +45,11 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
     useWeather(activeLocation, units, activeCurrent)
 
   const { pullDistance, isPulling } = usePullToRefresh(refetchCurrent, lastCurrentFetch)
+  const { widgetLocationId, widgetMode, setWidgetLocation, syncAutoLocation } = useWidgetLocation(units)
+
+  useEffect(() => {
+    syncAutoLocation(activeLocation)
+  }, [activeLocation, syncAutoLocation])
 
   const activeId = activeLocation ? `${activeLocation.lat},${activeLocation.lon}` : null
 
@@ -229,6 +235,10 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
         onToggleTheme={onToggleTheme}
         units={units}
         onToggleUnits={toggleUnits}
+        savedLocations={savedLocations}
+        widgetLocationId={widgetLocationId}
+        widgetMode={widgetMode}
+        onSetWidgetLocation={setWidgetLocation}
       />
     </div>
   )

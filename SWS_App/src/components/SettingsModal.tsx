@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
+import { Capacitor } from '@capacitor/core'
 import type { Theme } from '../hooks/useTheme'
-import type { Units } from '../types/weather'
+import type { SavedLocation, Units } from '../types/weather'
 
 interface SettingsModalProps {
   show: boolean
@@ -9,6 +10,10 @@ interface SettingsModalProps {
   onToggleTheme: () => void
   units: Units
   onToggleUnits: () => void
+  savedLocations: SavedLocation[]
+  widgetLocationId: string | null
+  widgetMode: 'auto' | 'manual'
+  onSetWidgetLocation: (loc: SavedLocation | null) => void
 }
 
 export function SettingsModal({
@@ -18,6 +23,10 @@ export function SettingsModal({
   onToggleTheme,
   units,
   onToggleUnits,
+  savedLocations,
+  widgetLocationId,
+  widgetMode,
+  onSetWidgetLocation,
 }: SettingsModalProps) {
   useEffect(() => {
     if (show) {
@@ -94,6 +103,46 @@ export function SettingsModal({
                   {units === 'metric' ? '°C — Metric' : '°F — Imperial'}
                 </button>
               </div>
+
+              {Capacitor.isNativePlatform() && (
+                <>
+                  <hr />
+                  <div>
+                    <label className="form-label fw-medium mb-2">Widget Location</label>
+                    <div className="d-flex flex-column gap-1">
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="radio"
+                          name="widget-location"
+                          id="widget-loc-auto"
+                          checked={widgetMode === 'auto'}
+                          onChange={() => onSetWidgetLocation(null)}
+                        />
+                        <label className="form-check-label" htmlFor="widget-loc-auto">
+                          Auto <span className="text-muted">(follows current location in app)</span>
+                        </label>
+                      </div>
+                      {savedLocations.map((loc) => (
+                        <div className="form-check" key={loc.id}>
+                          <input
+                            className="form-check-input"
+                            type="radio"
+                            name="widget-location"
+                            id={`widget-loc-${loc.id}`}
+                            checked={widgetMode === 'manual' && widgetLocationId === loc.id}
+                            onChange={() => onSetWidgetLocation(loc)}
+                          />
+                          <label className="form-check-label" htmlFor={`widget-loc-${loc.id}`}>
+                            {loc.name}
+                            {loc.admin1 ? `, ${loc.admin1}` : ''} — {loc.country}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

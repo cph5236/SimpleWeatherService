@@ -4,4 +4,6 @@
     <string name="title_activity_main">Simple Weather Service</string>
     <string name="package_name">com.cph5236.simpleweatherservice</string>
     <string name="custom_url_scheme">com.cph5236.simpleweatherservice</string>
+    <string name="widget_description">Current weather at a glance</string>
+    <string name="widget_condition_icon_desc">Weather condition icon</string>
 </resources>
