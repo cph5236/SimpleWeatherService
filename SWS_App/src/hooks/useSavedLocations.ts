@@ -30,6 +30,7 @@ export function useSavedLocations(): {
   savedLocations: SavedLocation[]
   addLocation: (loc: Location) => void
   removeLocation: (id: string) => void
+  reorderLocations: (from: number, to: number) => void
   hasLocation: (id: string) => boolean
 } {
   const [savedLocations, setSavedLocations] = useState<SavedLocation[]>(readLocations)
@@ -52,9 +53,19 @@ export function useSavedLocations(): {
     })
   }
 
+  function reorderLocations(from: number, to: number) {
+    setSavedLocations((prev) => {
+      const next = [...prev]
+      const [moved] = next.splice(from, 1)
+      next.splice(to, 0, moved)
+      writeLocations(next)
+      return next
+    })
+  }
+
   function hasLocation(id: string): boolean {
     return savedLocations.some((l) => l.id === id)
   }
 
-  return { savedLocations, addLocation, removeLocation, hasLocation }
+  return { savedLocations, addLocation, removeLocation, reorderLocations, hasLocation }
 }

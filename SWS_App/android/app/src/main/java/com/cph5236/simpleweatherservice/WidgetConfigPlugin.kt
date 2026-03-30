@@ -59,4 +59,29 @@ class WidgetConfigPlugin : Plugin() {
         result.put("units", prefs.getString("widget_units", "metric"))
         call.resolve(result)
     }
+
+    @PluginMethod
+    fun setWidgetBackground(call: PluginCall) {
+        val color = call.getString("color") ?: return call.reject("color required")
+        val alpha = call.getInt("alpha") ?: 100
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().apply {
+            putString("widget_bg_color", color)
+            putInt("widget_bg_alpha", alpha)
+            apply()
+        }
+        WeatherWidgetWorker.enqueueImmediate(context)
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun getWidgetBackground(call: PluginCall) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val color = prefs.getString("widget_bg_color", null)
+        val result = JSObject()
+        if (color != null) {
+            result.put("color", color)
+            result.put("alpha", prefs.getInt("widget_bg_alpha", 100))
+        }
+        call.resolve(result)
+    }
 }

@@ -244,6 +244,72 @@ describe('searchCity — locale country detection', () => {
   })
 })
 
+describe('searchCity — municipal abbreviation expansion', () => {
+  it('expands "Twp" to "Township" before sending to Photon', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makePhotonResponse([{ name: 'Cranberry Township', lat: 40.68, lon: -80.1, country: 'United States', state: 'Pennsylvania' }])
+    )
+    await searchCity('Cranberry Twp PA')
+    const url: string = mockFetch.mock.calls[0][0]
+    expect(decodeURIComponent(url)).toContain('q=Cranberry Township Pennsylvania')
+  })
+
+  it('expands "Twsp" to "Township"', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makePhotonResponse([{ name: 'Cranberry Township', lat: 40.68, lon: -80.1, country: 'United States', state: 'Pennsylvania' }])
+    )
+    await searchCity('Cranberry Twsp PA')
+    const url: string = mockFetch.mock.calls[0][0]
+    expect(decodeURIComponent(url)).toContain('Cranberry Township')
+  })
+
+  it('expands "Cty" to "County"', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makePhotonResponse([{ name: 'Erie County', lat: 42.12, lon: -80.08, country: 'United States', state: 'Pennsylvania' }])
+    )
+    await searchCity('Erie Cty PA')
+    const url: string = mockFetch.mock.calls[0][0]
+    expect(decodeURIComponent(url)).toContain('Erie County')
+  })
+
+  it('expands "Mt" to "Mount" in city name without breaking state detection', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makePhotonResponse([{ name: 'Mount Pleasant', lat: 43.6, lon: -84.77, country: 'United States', state: 'Michigan' }])
+    )
+    await searchCity('Mt Pleasant MI')
+    const url: string = mockFetch.mock.calls[0][0]
+    expect(decodeURIComponent(url)).toContain('q=Mount Pleasant Michigan')
+  })
+
+  it('does not expand MT state abbreviation (Montana) to Mount', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makePhotonResponse([{ name: 'Helena', lat: 46.59, lon: -112.02, country: 'United States', state: 'Montana' }])
+    )
+    await searchCity('Helena MT')
+    const url: string = mockFetch.mock.calls[0][0]
+    expect(decodeURIComponent(url)).toContain('q=Helena Montana')
+    expect(decodeURIComponent(url)).not.toContain('Mount')
+  })
+
+  it('expands "Ft" to "Fort"', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makePhotonResponse([{ name: 'Fort Wayne', lat: 41.13, lon: -85.12, country: 'United States', state: 'Indiana' }])
+    )
+    await searchCity('Ft Wayne IN')
+    const url: string = mockFetch.mock.calls[0][0]
+    expect(decodeURIComponent(url)).toContain('Fort Wayne Indiana')
+  })
+
+  it('does not alter queries with no abbreviations', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makePhotonResponse([{ name: 'Erie', lat: 42.12, lon: -80.08, country: 'United States', state: 'Pennsylvania' }])
+    )
+    await searchCity('Erie PA')
+    const url: string = mockFetch.mock.calls[0][0]
+    expect(decodeURIComponent(url)).toContain('q=Erie Pennsylvania')
+  })
+})
+
 describe('searchCity — full fallback chain with country code', () => {
   it('retries Open-Meteo without countryCode when all country-filtered searches return empty', async () => {
     vi.stubGlobal('navigator', { language: 'en-US' })

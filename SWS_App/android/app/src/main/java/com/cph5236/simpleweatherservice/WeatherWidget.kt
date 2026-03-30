@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -178,6 +179,16 @@ private fun fillSharedViews(
     views.setTextViewText(R.id.widget_humidity, "Humidity $humidity%")
 }
 
+private fun applyCustomBackground(views: RemoteViews, context: Context) {
+    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    val hex = prefs.getString("widget_bg_color", null) ?: return
+    val alphaPct = prefs.getInt("widget_bg_alpha", 100)
+    val alpha = (alphaPct * 255 / 100).coerceIn(0, 255)
+    val rgb = Color.parseColor(hex) and 0x00FFFFFF
+    val argb = (alpha shl 24) or rgb
+    views.setInt(R.id.widget_root, "setBackgroundColor", argb)
+}
+
 fun buildRemoteViews(
     context: Context,
     locationName: String,
@@ -190,6 +201,7 @@ fun buildRemoteViews(
 ): RemoteViews {
     val views = RemoteViews(context.packageName, R.layout.widget_weather)
     fillSharedViews(views, locationName, temp, tempUnit, description, iconEmoji, feelsLike, humidity)
+    applyCustomBackground(views, context)
     views.setOnClickPendingIntent(R.id.widget_root, makePendingIntent(context))
     return views
 }
@@ -206,6 +218,7 @@ fun buildRemoteViewsMedium(
 ): RemoteViews {
     val views = RemoteViews(context.packageName, R.layout.widget_weather_medium)
     fillSharedViews(views, locationName, temp, tempUnit, description, iconEmoji, feelsLike, humidity)
+    applyCustomBackground(views, context)
     views.setOnClickPendingIntent(R.id.widget_root, makePendingIntent(context))
     return views
 }
@@ -219,6 +232,7 @@ fun buildRemoteViewsSmall(
     val views = RemoteViews(context.packageName, R.layout.widget_weather_small)
     views.setTextViewText(R.id.widget_temp_small, "$temp$tempUnit")
     views.setTextViewText(R.id.widget_icon_small, iconEmoji)
+    applyCustomBackground(views, context)
     views.setOnClickPendingIntent(R.id.widget_root, makePendingIntent(context))
     return views
 }

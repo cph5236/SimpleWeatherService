@@ -23,6 +23,22 @@ const US_STATE_ABBREVIATIONS: Record<string, string> = {
   DC: 'District of Columbia',
 }
 
+const ABBREVIATION_MAP: [RegExp, string][] = [
+  [/\btwsp\b/gi, 'Township'],
+  [/\btwp\b/gi, 'Township'],
+  [/\bcty\b/gi, 'County'],
+  [/\bmt\b/gi, 'Mount'],
+  [/\bft\b/gi, 'Fort'],
+  [/\bpt\b/gi, 'Point'],
+  [/\bhts\b/gi, 'Heights'],
+  [/\bvlg\b/gi, 'Village'],
+  [/\bjct\b/gi, 'Junction'],
+]
+
+function expandAbbreviations(name: string): string {
+  return ABBREVIATION_MAP.reduce((n, [pattern, expansion]) => n.replace(pattern, expansion), name)
+}
+
 function parseQuery(raw: string): { cityName: string; stateName: string | null; countryCode: string | null } {
   const match = raw.trim().match(/^(.+?)[\s,]+([a-zA-Z]{2})$/)
   if (match) {
@@ -169,7 +185,8 @@ async function fetchOpenMeteo(cityName: string, countryCode: string | null): Pro
 export async function searchCity(query: string): Promise<Location[]> {
   if (!query.trim()) return []
 
-  const { cityName, stateName, countryCode: parsedCountryCode } = parseQuery(query)
+  const { cityName: rawCityName, stateName, countryCode: parsedCountryCode } = parseQuery(query)
+  const cityName = expandAbbreviations(rawCityName)
   const countryCode = parsedCountryCode ?? getLocaleCountryCode()
 
   const photonQuery = stateName ? `${cityName} ${stateName}` : cityName

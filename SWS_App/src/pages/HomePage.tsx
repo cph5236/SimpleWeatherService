@@ -14,6 +14,7 @@ import { useSavedLocations } from '../hooks/useSavedLocations'
 import { useSavedLocationsWeather } from '../hooks/useSavedLocationsWeather'
 import { useUnits } from '../hooks/useUnits'
 import { useWeather } from '../hooks/useWeather'
+import { useWidgetBackground } from '../hooks/useWidgetBackground'
 import { useWidgetLocation } from '../hooks/useWidgetLocation'
 import type { Theme } from '../hooks/useTheme'
 import type { Location, SavedLocation } from '../types/weather'
@@ -36,7 +37,7 @@ interface HomePageProps {
 
 export function HomePage({ theme, onToggleTheme }: HomePageProps) {
   const { units, toggleUnits } = useUnits()
-  const { savedLocations, addLocation, removeLocation, hasLocation } = useSavedLocations()
+  const { savedLocations, addLocation, removeLocation, reorderLocations, hasLocation } = useSavedLocations()
   const [activeLocation, setActiveLocation] = useState<Location | null>(loadLastLocation)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const { weatherMap: savedWeatherMap, activeCurrent, loading: savedWeatherLoading } =
@@ -46,6 +47,7 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
 
   const { pullDistance, isPulling } = usePullToRefresh(refetchCurrent, lastCurrentFetch)
   const { widgetLocationId, widgetMode, setWidgetLocation, syncAutoLocation } = useWidgetLocation(units)
+  const { bgColor, bgAlpha, setWidgetBackground } = useWidgetBackground()
 
   useEffect(() => {
     syncAutoLocation(activeLocation)
@@ -139,6 +141,7 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
               activeId={activeId}
               onSelect={handleSelectSaved}
               onRemove={removeLocation}
+              onReorder={reorderLocations}
               weatherMap={savedWeatherMap}
               weatherLoading={savedWeatherLoading}
               units={units}
@@ -239,6 +242,9 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
         widgetLocationId={widgetLocationId}
         widgetMode={widgetMode}
         onSetWidgetLocation={setWidgetLocation}
+        bgColor={bgColor}
+        bgAlpha={bgAlpha}
+        onSetWidgetBackground={setWidgetBackground}
       />
     </div>
   )
