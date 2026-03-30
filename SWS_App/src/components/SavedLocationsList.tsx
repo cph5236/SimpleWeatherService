@@ -165,13 +165,13 @@ export function SavedLocationsList({
   weatherLoading,
   units,
 }: SavedLocationsListProps) {
-  if (locations.length === 0) return null
-
-  const unitLabel = units === 'imperial' ? '°F' : '°C'
-
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 10 } })
   )
+
+  if (locations.length === 0) return null
+
+  const unitLabel = units === 'imperial' ? '°F' : '°C'
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
