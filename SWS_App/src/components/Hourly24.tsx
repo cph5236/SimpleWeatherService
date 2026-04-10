@@ -154,7 +154,7 @@ export function Hourly24({ hours, units, lat, lon }: Hourly24Props) {
             <div className="fw-semibold small">
               {Math.round(hour.temperature)}{tempUnit}
             </div>
-            {hour.precipProbability > 0 && (
+            {hour.precipProbability >= 0 && (
               <div className="text-primary small" aria-label={`${hour.precipProbability}% precipitation`}>
                 {hour.precipProbability}%
               </div>
