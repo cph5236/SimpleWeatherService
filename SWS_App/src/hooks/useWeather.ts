@@ -51,11 +51,12 @@ export function useWeather(
     const fetchId = ++fetchCountRef.current
     setState((prev) => ({ ...prev, loading: true, error: null }))
 
-    // Use pre-fetched current weather from the batch call if available;
-    // fall back to an individual getCurrentWeather request otherwise.
-    const usingPrefetch = !!prefetchedRef.current
-    const currentPromise = prefetchedRef.current
-      ? Promise.resolve(prefetchedRef.current)
+    // Use pre-fetched current weather from the batch call if available and
+    // its units match the requested units; otherwise fetch fresh to avoid
+    // showing stale metric values with an imperial label (or vice-versa).
+    const usingPrefetch = !!prefetchedRef.current && prefetchedRef.current.units === units
+    const currentPromise = usingPrefetch
+      ? Promise.resolve(prefetchedRef.current!)
       : getCurrentWeather(location.lat, location.lon, units)
 
     if (import.meta.env.DEV) {

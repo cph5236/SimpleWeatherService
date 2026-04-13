@@ -36,7 +36,7 @@ interface HomePageProps {
 }
 
 export function HomePage({ theme, onToggleTheme }: HomePageProps) {
-  const { units, toggleUnits } = useUnits()
+  const { units, toggleUnits, hasExplicitPreference, setUnits } = useUnits()
   const { savedLocations, addLocation, removeLocation, reorderLocations, hasLocation } = useSavedLocations()
   const [activeLocation, setActiveLocation] = useState<Location | null>(loadLastLocation)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -56,6 +56,9 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
   const activeId = activeLocation ? `${activeLocation.lat},${activeLocation.lon}` : null
 
   function handleSelectLocation(loc: Location) {
+    if (!hasExplicitPreference) {
+      setUnits(loc.country === 'United States' ? 'imperial' : 'metric')
+    }
     setActiveLocation(loc)
     localStorage.setItem(LAST_LOCATION_KEY, JSON.stringify(loc))
   }
@@ -186,6 +189,7 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
               <CurrentWeatherCard
                 location={activeLocation}
                 weather={current}
+                units={units}
                 isSaved={hasLocation(activeId!)}
                 onSaveToggle={handleSaveToggle}
                 onRefresh={refetchCurrent}

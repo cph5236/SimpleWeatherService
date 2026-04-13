@@ -7,6 +7,7 @@ const REFRESH_COOLDOWN_MS = 60 * 1000
 interface CurrentWeatherCardProps {
   location: Location
   weather: CurrentWeather
+  units: Units
   isSaved: boolean
   onSaveToggle: () => void
   onRefresh: () => void
@@ -29,13 +30,14 @@ function windUnitLabel(units: Units): string {
 export function CurrentWeatherCard({
   location,
   weather,
+  units,
   isSaved,
   onSaveToggle,
   onRefresh,
   lastRefreshed,
 }: CurrentWeatherCardProps) {
-  const tempUnit = unitLabel(weather.units)
-  const windUnit = windUnitLabel(weather.units)
+  const tempUnit = unitLabel(units)
+  const windUnit = windUnitLabel(units)
 
   const [secondsLeft, setSecondsLeft] = useState(0)
 
