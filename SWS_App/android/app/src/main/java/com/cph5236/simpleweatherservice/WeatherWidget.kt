@@ -38,22 +38,13 @@ class WeatherWidget : AppWidgetProvider() {
             )
 
             for (id in appWidgetIds) {
-                val views = RemoteViews(context.packageName, R.layout.widget_weather)
+                val views = RemoteViews(context.packageName, R.layout.widget_weather_small)
                 if (!configured) {
-                    views.setTextViewText(R.id.widget_location, "Simple Weather")
-                    views.setTextViewText(R.id.widget_temp, "--")
-                    views.setTextViewText(R.id.widget_description, "Open app to set widget location")
-                    views.setTextViewText(R.id.widget_icon, "")
-                    views.setTextViewText(R.id.widget_feels_like, "")
-                    views.setTextViewText(R.id.widget_humidity, "")
+                    views.setTextViewText(R.id.widget_icon_small, "")
+                    views.setTextViewText(R.id.widget_temp_small, "--")
                 } else {
-                    val locName = prefs.getString("widget_location_name", "") ?: ""
-                    views.setTextViewText(R.id.widget_location, locName)
-                    views.setTextViewText(R.id.widget_temp, "…")
-                    views.setTextViewText(R.id.widget_description, "Refreshing…")
-                    views.setTextViewText(R.id.widget_icon, "")
-                    views.setTextViewText(R.id.widget_feels_like, "")
-                    views.setTextViewText(R.id.widget_humidity, "")
+                    views.setTextViewText(R.id.widget_icon_small, "")
+                    views.setTextViewText(R.id.widget_temp_small, "…")
                 }
                 views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
                 appWidgetManager.updateAppWidget(id, views)
