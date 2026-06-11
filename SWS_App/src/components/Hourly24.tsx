@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
-import { getWeatherEmoji } from '../types/weather'
 import type { HourlyForecast, Units } from '../types/weather'
+import { WeatherIcon } from './WeatherIcon'
 import { useAQI } from '../hooks/useAQI'
 
 interface Hourly24Props {
@@ -148,8 +148,8 @@ export function Hourly24({ hours, units, lat, lon }: Hourly24Props) {
             }}
           >
             <div className="small text-muted">{formatHour(hour.time)}</div>
-            <div style={{ fontSize: '1.4rem' }} aria-hidden="true">
-              {getWeatherEmoji(hour.weatherCode)}
+            <div className="d-flex justify-content-center my-1">
+              <WeatherIcon code={hour.weatherCode} isDay={hour.isDay} size={32} />
             </div>
             <div className="fw-semibold small">
               {Math.round(hour.temperature)}{tempUnit}

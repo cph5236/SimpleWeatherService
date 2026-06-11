@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { getWeatherDescription, getWeatherEmoji } from '../types/weather'
+import { getWeatherDescription } from '../types/weather'
 import type { CurrentWeather, Location, Units } from '../types/weather'
+import { WeatherIcon } from './WeatherIcon'
 
 const REFRESH_COOLDOWN_MS = 60 * 1000
 
@@ -90,9 +91,7 @@ export function CurrentWeatherCard({
         </div>
 
         <div className="d-flex align-items-center gap-3 mb-3">
-          <span style={{ fontSize: '3.5rem' }} aria-hidden="true">
-            {getWeatherEmoji(weather.weatherCode)}
-          </span>
+          <WeatherIcon code={weather.weatherCode} isDay={weather.isDay} size={72} />
           <div>
             <div className="display-5 fw-bold">
               {Math.round(weather.temperature)}{tempUnit}

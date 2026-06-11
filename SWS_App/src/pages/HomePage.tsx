@@ -13,6 +13,7 @@ import { usePullToRefresh } from '../hooks/usePullToRefresh'
 import { useSavedLocations } from '../hooks/useSavedLocations'
 import { useSavedLocationsWeather } from '../hooks/useSavedLocationsWeather'
 import { useUnits } from '../hooks/useUnits'
+import { IconAnimationContext, useIconAnimationPref } from '../hooks/useIconAnimation'
 import { useWeather } from '../hooks/useWeather'
 import { useWidgetBackground } from '../hooks/useWidgetBackground'
 import { useWidgetLocation } from '../hooks/useWidgetLocation'
@@ -55,6 +56,7 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
   const { pullDistance, isPulling } = usePullToRefresh(handleRefresh, lastCurrentFetch)
   const { widgetLocationId, widgetMode, setWidgetLocation, syncAutoLocation } = useWidgetLocation(units)
   const { bgColor, bgAlpha, setWidgetBackground } = useWidgetBackground()
+  const { animated: iconAnimation, toggleAnimated: toggleIconAnimation } = useIconAnimationPref()
 
   useEffect(() => {
     syncAutoLocation(activeLocation)
@@ -84,6 +86,7 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
   }
 
   return (
+    <IconAnimationContext.Provider value={iconAnimation}>
     <div className="min-vh-100 d-flex flex-column">
       {/* Pull-to-refresh indicator */}
       <div
@@ -256,7 +259,10 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
         bgColor={bgColor}
         bgAlpha={bgAlpha}
         onSetWidgetBackground={setWidgetBackground}
+        iconAnimation={iconAnimation}
+        onToggleIconAnimation={toggleIconAnimation}
       />
     </div>
+    </IconAnimationContext.Provider>
   )
 }

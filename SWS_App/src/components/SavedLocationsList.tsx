@@ -13,7 +13,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { CurrentWeather, SavedLocation, Units } from '../types/weather'
-import { getWeatherEmoji } from '../types/weather'
+import { WeatherIcon } from './WeatherIcon'
 
 const US_STATE_ABBREV: Record<string, string> = {
   Alabama: 'AL', Alaska: 'AK', Arizona: 'AZ', Arkansas: 'AR', California: 'CA',
@@ -104,9 +104,7 @@ function SortableLocationCard({
             />
           ) : weather ? (
             <>
-              <span aria-hidden="true" style={{ fontSize: '1.05rem', lineHeight: 1 }}>
-                {getWeatherEmoji(weather.weatherCode)}
-              </span>
+              <WeatherIcon code={weather.weatherCode} isDay={weather.isDay} size={22} />
               <span
                 className="fw-semibold"
                 style={{ fontSize: '0.9rem', color: 'var(--sws-text-primary)' }}

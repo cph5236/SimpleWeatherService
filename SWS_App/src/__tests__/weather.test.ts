@@ -70,6 +70,7 @@ const mockHourlyResponse = {
     wind_direction_10m: Array.from({ length: 48 }, () => 180),
     weather_code: Array.from({ length: 48 }, () => 0),
     uv_index: Array.from({ length: 48 }, () => 3),
+    is_day: Array.from({ length: 48 }, (_, i) => ((i % 24) >= 7 && (i % 24) < 19 ? 1 : 0)),
   },
 }
 
@@ -164,6 +165,18 @@ describe('getHourlyForecast', () => {
     expect(result[0]).toHaveProperty('windSpeed')
     expect(result[0]).toHaveProperty('weatherCode')
     expect(result[0]).toHaveProperty('uvIndex')
+    expect(result[0]).toHaveProperty('isDay')
+  })
+
+  it('maps is_day to a boolean isDay flag per hour', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-03-11T00:00:00Z'))
+    mockFetch.mockResolvedValueOnce(makeResponse(mockHourlyResponse))
+    const result = await getHourlyForecast(51.5, -0.1, 'metric')
+    // Hour 0 (midnight, is_day=0) is night; hour 12 (noon, is_day=1) is day.
+    expect(result[0].isDay).toBe(false)
+    expect(result[12].isDay).toBe(true)
+    vi.useRealTimers()
   })
 
   it('starts from location local time, not UTC, when utc_offset_seconds is negative', async () => {
@@ -184,6 +197,7 @@ describe('getHourlyForecast', () => {
         wind_direction_10m: Array.from({ length: 48 }, () => 0),
         weather_code: Array.from({ length: 48 }, () => 0),
         uv_index: Array.from({ length: 48 }, () => 0),
+        is_day: Array.from({ length: 48 }, () => 1),
       },
     }
 

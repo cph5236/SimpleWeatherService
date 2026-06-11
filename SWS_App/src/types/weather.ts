@@ -27,6 +27,7 @@ export interface HourlyForecast {
   windDirection: number
   weatherCode: number
   uvIndex: number
+  isDay: boolean
 }
 
 export interface HourlyAQI {
@@ -72,16 +73,20 @@ export function getWeatherDescription(code: number): string {
   return 'Unknown'
 }
 
-export function getWeatherEmoji(code: number): string {
-  if (code === 0) return '☀️'
-  if (code <= 3) return '⛅'
-  if (code === 45 || code === 48) return '☁️'
-  if (code >= 51 && code <= 57) return '🌦️'
-  if (code >= 61 && code <= 67) return '🌧️'
-  if (code >= 71 && code <= 77) return '❄️'
-  if (code >= 80 && code <= 82) return '🌦️'
-  if (code === 85 || code === 86) return '🌨️'
-  if (code === 95) return '⛈️'
-  if (code === 96 || code === 99) return '⛈️'
-  return '🌡️'
+// Maps a WMO weather code (plus day/night) to a Meteocons icon name. Only the
+// clear and partly-cloudy conditions have a sun/moon, so only those vary by
+// day/night; the rest use day-agnostic icons.
+export function getWeatherIconName(code: number, isDay: boolean): string {
+  const dayNight = isDay ? 'day' : 'night'
+  if (code === 0) return `clear-${dayNight}`
+  if (code <= 3) return `partly-cloudy-${dayNight}`
+  if (code === 45 || code === 48) return 'fog'
+  if (code >= 51 && code <= 57) return 'drizzle'
+  if (code >= 61 && code <= 67) return 'rain'
+  if (code >= 71 && code <= 77) return 'snow'
+  if (code >= 80 && code <= 82) return 'rain'
+  if (code === 85 || code === 86) return 'snow'
+  if (code === 95) return 'thunderstorms'
+  if (code === 96 || code === 99) return 'thunderstorms-rain'
+  return 'not-available'
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getWeatherDescription, getWeatherEmoji } from '../types/weather'
+import { getWeatherDescription, getWeatherIconName } from '../types/weather'
 
 describe('getWeatherDescription', () => {
   it('returns Clear sky for code 0', () => {
@@ -55,21 +55,34 @@ describe('getWeatherDescription', () => {
   })
 })
 
-describe('getWeatherEmoji', () => {
-  it('returns sun for code 0', () => {
-    expect(getWeatherEmoji(0)).toBe('☀️')
+describe('getWeatherIconName', () => {
+  it('returns clear-day for code 0 during the day, clear-night at night', () => {
+    expect(getWeatherIconName(0, true)).toBe('clear-day')
+    expect(getWeatherIconName(0, false)).toBe('clear-night')
   })
 
-  it('returns partly cloudy for codes 1-3', () => {
-    expect(getWeatherEmoji(1)).toBe('⛅')
+  it('returns partly-cloudy day/night variants for codes 1-3', () => {
+    expect(getWeatherIconName(1, true)).toBe('partly-cloudy-day')
+    expect(getWeatherIconName(2, false)).toBe('partly-cloudy-night')
+    expect(getWeatherIconName(3, false)).toBe('partly-cloudy-night')
   })
 
-  it('returns fog for codes 45 and 48', () => {
-    expect(getWeatherEmoji(45)).toBe('☁️')
+  it('returns a day/night-agnostic fog icon for codes 45 and 48', () => {
+    expect(getWeatherIconName(45, true)).toBe('fog')
+    expect(getWeatherIconName(48, false)).toBe('fog')
   })
 
-  it('returns thunderstorm for codes 96 and 99', () => {
-    expect(getWeatherEmoji(96)).toBe('⛈️')
-    expect(getWeatherEmoji(99)).toBe('⛈️')
+  it('returns rain for codes 61-67 regardless of day/night', () => {
+    expect(getWeatherIconName(61, true)).toBe('rain')
+    expect(getWeatherIconName(65, false)).toBe('rain')
+  })
+
+  it('returns thunderstorms-rain for codes 96 and 99', () => {
+    expect(getWeatherIconName(96, true)).toBe('thunderstorms-rain')
+    expect(getWeatherIconName(99, false)).toBe('thunderstorms-rain')
+  })
+
+  it('returns not-available for unrecognized codes', () => {
+    expect(getWeatherIconName(999, true)).toBe('not-available')
   })
 })
