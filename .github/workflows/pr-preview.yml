@@ -45,7 +45,8 @@ jobs:
           script: |
             const sha = context.sha;
             const url = `https://cph5236.github.io/SimpleWeatherService/pr-previews/${sha}/`;
-            const body = `### Preview deployed\n\n**${url}**\n\nCommit: \`${sha}\``;
+            const marker = '<!-- pr-preview-bot -->';
+            const body = `${marker}\n### Preview deployed\n\n**[${url}](${url})**\n\nCommit: \`${sha}\`\n\n> It may take a minute or two for the page to go live after the workflow completes.`;
 
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
@@ -53,9 +54,7 @@ jobs:
               issue_number: context.issue.number,
             });
 
-            const existing = comments.find(c =>
-              c.user.login === 'github-actions[bot]' && c.body.includes('Preview deployed')
-            );
+            const existing = comments.find(c => c.body.includes(marker));
 
             if (existing) {
               await github.rest.issues.updateComment({
