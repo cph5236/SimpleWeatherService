@@ -2,8 +2,12 @@
 // Usage: node scripts/bump-version.js [patch|minor|major]
 //   or:  cd SWS_App && npm run bump [patch|minor|major]
 // Defaults to "patch" if no argument is given.
+//
+// After bumping, commits the changed files and pushes a v<version> tag,
+// which triggers the mobile CI/CD workflow to build and deploy to Play Console.
 
 import { readFileSync, writeFileSync } from 'fs'
+import { execSync } from 'child_process'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
@@ -51,3 +55,17 @@ console.log(`Bumped ${bumpType}: ${oldVersion} → ${newVersion}`)
 console.log(`  package.json  version: ${newVersion}`)
 console.log(`  build.gradle  versionCode: ${oldVersionCode} → ${newVersionCode}`)
 console.log(`  build.gradle  versionName: "${newVersion}"`)
+
+// --- git commit + tag ---
+const tag = `v${newVersion}`
+try {
+  execSync(`git -C "${root}" add SWS_App/package.json SWS_App/android/app/build.gradle`, { stdio: 'inherit' })
+  execSync(`git -C "${root}" commit -m "chore: release ${tag}"`, { stdio: 'inherit' })
+  execSync(`git -C "${root}" tag ${tag}`, { stdio: 'inherit' })
+  execSync(`git -C "${root}" push origin HEAD --tags`, { stdio: 'inherit' })
+  console.log(`\nTagged and pushed ${tag} — mobile CI/CD workflow triggered.`)
+} catch (err) {
+  console.error('\nVersion files updated but git commit/tag/push failed.')
+  console.error('Commit and push manually, then: git tag ' + tag + ' && git push origin ' + tag)
+  process.exit(1)
+}

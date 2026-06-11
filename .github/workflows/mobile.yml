@@ -2,7 +2,8 @@ name: Mobile Builds
 
 on:
   push:
-    branches: [main, release/*]
+    tags:
+      - 'v*.*.*'
   workflow_dispatch:
 
 jobs:
@@ -11,6 +12,8 @@ jobs:
     defaults:
       run:
         working-directory: SWS_App
+    outputs:
+      aab-path: ${{ steps.locate-aab.outputs.path }}
     steps:
       - uses: actions/checkout@v4
 
@@ -43,10 +46,31 @@ jobs:
             -Pandroid.injected.signing.key.alias=${{ secrets.ANDROID_KEY_ALIAS }} \
             -Pandroid.injected.signing.key.password=${{ secrets.ANDROID_KEY_PASSWORD }}
 
+      - id: locate-aab
+        run: echo "path=SWS_App/android/app/build/outputs/bundle/release/app-release.aab" >> "$GITHUB_OUTPUT"
+
       - uses: actions/upload-artifact@v4
         with:
           name: android-aab
           path: SWS_App/android/app/build/outputs/bundle/release/app-release.aab
+
+  deploy-android:
+    needs: android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-aab
+          path: aab
+
+      - name: Upload to Play Console (closed beta)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.cph5236.simpleweatherservice
+          releaseFiles: aab/app-release.aab
+          track: beta
+          status: completed
 
   ios:
     runs-on: macos-latest
