@@ -17,9 +17,14 @@ import thunderstorms from '@bybas/weather-icons/production/fill/all/thunderstorm
 import thunderstormsRain from '@bybas/weather-icons/production/fill/all/thunderstorms-rain.svg?raw'
 import notAvailable from '@bybas/weather-icons/production/fill/all/not-available.svg?raw'
 
-// Let the SVG scale to the wrapper instead of its intrinsic size.
+// Let the SVG scale to the wrapper instead of its intrinsic size. Strip any
+// existing width/height first so we never emit duplicate attributes if the
+// icon set ever ships intrinsic dimensions.
 function sized(svg: string): string {
-  return svg.replace(/<svg\b/, '<svg width="100%" height="100%"')
+  return svg
+    .replace(/(<svg\b[^>]*?)\s+width="[^"]*"/, '$1')
+    .replace(/(<svg\b[^>]*?)\s+height="[^"]*"/, '$1')
+    .replace(/<svg\b/, '<svg width="100%" height="100%"')
 }
 
 function toStatic(svg: string): string {
@@ -29,6 +34,7 @@ function toStatic(svg: string): string {
       .replace(/<animate[A-Za-z]*\b[^>]*\/>/g, '')
       .replace(/<animate[A-Za-z]*\b[\s\S]*?<\/animate[A-Za-z]*>/g, '')
       .replace(/<set\b[^>]*\/>/g, '')
+      .replace(/<set\b[\s\S]*?<\/set>/g, '')
   )
 }
 
