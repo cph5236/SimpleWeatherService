@@ -33,7 +33,8 @@ export function useIconAnimationPref(): { animated: boolean; toggleAnimated: () 
 
 // Lets the leaf WeatherIcon read the preference without prop-drilling through
 // every component that renders an icon. Defaults to animated when no provider
-// is present.
+// is present — tests/stories rendering WeatherIcon in isolation can wrap with
+// <IconAnimationContext.Provider value={false}> for deterministic static output.
 export const IconAnimationContext = createContext<boolean>(true)
 
 export function useIconAnimation(): boolean {
