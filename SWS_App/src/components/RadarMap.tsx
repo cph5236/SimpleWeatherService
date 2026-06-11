@@ -12,6 +12,7 @@ interface RadarMapProps {
   lat: number
   lon: number
   country: string
+  refreshSignal?: number
 }
 
 const RAINVIEWER_LEGEND = [
@@ -189,8 +190,8 @@ function formatTimeAgo(unixSeconds: number): string {
   return `${diffMin} min ago`
 }
 
-export function RadarMap({ lat, lon, country }: RadarMapProps) {
-  const { frames, error } = useRadar()
+export function RadarMap({ lat, lon, country, refreshSignal }: RadarMapProps) {
+  const { frames, error } = useRadar(refreshSignal)
   const [expanded, setExpanded] = useState(false)
   const [mapSource, setMapSource] = useState<MapSource>(() => (country === 'United States' ? 'noaa' : 'rainviewer'))
   const [legendExpanded, setLegendExpanded] = useState(false)

@@ -10,7 +10,7 @@ interface RadarState {
 
 const INITIAL: RadarState = { frames: [], loading: true, error: null }
 
-export function useRadar() {
+export function useRadar(refreshSignal?: number) {
   const [state, setState] = useState<RadarState>(INITIAL)
   const mountedRef = useRef(true)
 
@@ -35,6 +35,11 @@ export function useRadar() {
       clearInterval(id)
     }
   }, [load])
+
+  // Re-fetch when an external refresh is triggered (signal > 0 to skip initial render)
+  useEffect(() => {
+    if (refreshSignal && refreshSignal > 0) load()
+  }, [refreshSignal, load])
 
   return { ...state, refetch: load }
 }
