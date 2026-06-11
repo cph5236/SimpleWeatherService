@@ -28,7 +28,7 @@
         android:strokeMiterLimit="10"
         android:pathData="M38.39 43.03l-0.78 4.94"/>
     <path
-        android:fillColor="#FF000000"
+        android:fillColor="#FFF7B23B"
         android:strokeColor="#FFF6A823"
         android:strokeWidth=".5"
         android:strokeMiterLimit="10"

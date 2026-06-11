@@ -22,7 +22,7 @@
         android:strokeMiterLimit="10"
         android:pathData="M31.08 45.01l-0.16 0.98"/>
     <path
-        android:strokeColor="#FF000000"
+        android:strokeColor="#FF4286EE"
         android:strokeWidth="2"
         android:strokeLineCap="round"
         android:strokeMiterLimit="10"
