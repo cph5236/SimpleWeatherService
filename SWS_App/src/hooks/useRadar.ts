@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { fetchRadarFrames, RAINVIEWER_TTL_MS } from '../services/rainviewer'
+import { fetchRadarFrames, clearRadarCache, RAINVIEWER_TTL_MS } from '../services/rainviewer'
 import type { RadarFrame } from '../services/rainviewer'
 
 interface RadarState {
@@ -38,7 +38,10 @@ export function useRadar(refreshSignal?: number) {
 
   // Re-fetch when an external refresh is triggered (signal > 0 to skip initial render)
   useEffect(() => {
-    if (refreshSignal && refreshSignal > 0) load()
+    if (refreshSignal && refreshSignal > 0) {
+      clearRadarCache()
+      load()
+    }
   }, [refreshSignal, load])
 
   return { ...state, refetch: load }

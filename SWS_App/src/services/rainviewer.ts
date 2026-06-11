@@ -29,6 +29,10 @@ interface CacheEntry {
 
 let cached: CacheEntry | null = null
 
+export function clearRadarCache(): void {
+  cached = null
+}
+
 function buildTileUrl(host: string, path: string): string {
   return `${host}${path}/256/{z}/{x}/{y}/2/1_1.png`
 }

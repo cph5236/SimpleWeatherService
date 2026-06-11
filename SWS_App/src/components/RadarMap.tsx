@@ -250,6 +250,7 @@ export function RadarMap({ lat, lon, country, refreshSignal }: RadarMapProps) {
       )}
       {mapSource === 'noaa' && (
         <WMSTileLayer
+          key={refreshSignal ?? 0}
           url={NOAA_WMS_URL}
           params={NOAA_WMS_PARAMS}
           opacity={0.6}
