@@ -40,10 +40,8 @@ class WeatherWidget : AppWidgetProvider() {
             for (id in appWidgetIds) {
                 val views = RemoteViews(context.packageName, R.layout.widget_weather_small)
                 if (!configured) {
-                    views.setTextViewText(R.id.widget_icon_small, "")
                     views.setTextViewText(R.id.widget_temp_small, "--")
                 } else {
-                    views.setTextViewText(R.id.widget_icon_small, "")
                     views.setTextViewText(R.id.widget_temp_small, "…")
                 }
                 views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
@@ -79,15 +77,16 @@ class WeatherWidget : AppWidgetProvider() {
         val feelsLike = prefs.getInt("widget_last_feels_like", 0)
         val humidity = prefs.getInt("widget_last_humidity", 0)
         val code = prefs.getInt("widget_last_code", 0)
+        val isDay = prefs.getBoolean("widget_last_is_day", true)
         val locName = prefs.getString("widget_location_name", "") ?: ""
         val units = prefs.getString("widget_units", "metric") ?: "metric"
         val tempUnit = if (units == "imperial") "°F" else "°C"
 
         val description = weatherDescription(code)
-        val iconEmoji = weatherIconEmoji(code)
+        val iconRes = weatherIconRes(code, isDay)
         val widthDp = newOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
 
-        val views = pickViews(context, widthDp, locName, temp, tempUnit, description, iconEmoji, feelsLike, humidity)
+        val views = pickViews(context, widthDp, locName, temp, tempUnit, description, iconRes, feelsLike, humidity)
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }
 
@@ -127,19 +126,23 @@ fun weatherDescription(code: Int): String = when {
     else -> "Unknown"
 }
 
-/** Matches the web app's getWeatherEmoji() in weather.ts */
-fun weatherIconEmoji(code: Int): String = when {
-    code == 0 -> "☀️"
-    code <= 3 -> "⛅"
-    code == 45 || code == 48 -> "☁️"
-    code in 51..57 -> "🌦️"
-    code in 61..67 -> "🌧️"
-    code in 71..77 -> "❄️"
-    code in 80..82 -> "🌦️"
-    code == 85 || code == 86 -> "🌨️"
-    code == 95 -> "⛈️"
-    code == 96 || code == 99 -> "⛈️"
-    else -> "🌡️"
+/**
+ * Maps a WMO weather code (plus day/night) to a Meteocons VectorDrawable.
+ * Mirrors the web app's getWeatherIconName() in types/weather.ts — only clear
+ * and partly-cloudy vary by day/night (sun vs moon); the rest are day-agnostic.
+ */
+fun weatherIconRes(code: Int, isDay: Boolean): Int = when {
+    code == 0 -> if (isDay) R.drawable.ic_weather_clear_day else R.drawable.ic_weather_clear_night
+    code <= 3 -> if (isDay) R.drawable.ic_weather_partly_cloudy_day else R.drawable.ic_weather_partly_cloudy_night
+    code == 45 || code == 48 -> R.drawable.ic_weather_fog
+    code in 51..57 -> R.drawable.ic_weather_drizzle
+    code in 61..67 -> R.drawable.ic_weather_rain
+    code in 71..77 -> R.drawable.ic_weather_snow
+    code in 80..82 -> R.drawable.ic_weather_rain
+    code == 85 || code == 86 -> R.drawable.ic_weather_snow
+    code == 95 -> R.drawable.ic_weather_thunderstorms
+    code == 96 || code == 99 -> R.drawable.ic_weather_thunderstorms_rain
+    else -> R.drawable.ic_weather_not_available
 }
 
 private fun makePendingIntent(context: Context): PendingIntent {
@@ -158,14 +161,14 @@ private fun fillSharedViews(
     temp: Int,
     tempUnit: String,
     description: String,
-    iconEmoji: String,
+    iconRes: Int,
     feelsLike: Int,
     humidity: Int,
 ) {
     views.setTextViewText(R.id.widget_location, locationName)
     views.setTextViewText(R.id.widget_temp, "$temp$tempUnit")
     views.setTextViewText(R.id.widget_description, description)
-    views.setTextViewText(R.id.widget_icon, iconEmoji)
+    views.setImageViewResource(R.id.widget_icon, iconRes)
     views.setTextViewText(R.id.widget_feels_like, "Feels $feelsLike$tempUnit")
     views.setTextViewText(R.id.widget_humidity, "Humidity $humidity%")
 }
@@ -186,12 +189,12 @@ fun buildRemoteViews(
     temp: Int,
     tempUnit: String,
     description: String,
-    iconEmoji: String,
+    iconRes: Int,
     feelsLike: Int,
     humidity: Int,
 ): RemoteViews {
     val views = RemoteViews(context.packageName, R.layout.widget_weather)
-    fillSharedViews(views, locationName, temp, tempUnit, description, iconEmoji, feelsLike, humidity)
+    fillSharedViews(views, locationName, temp, tempUnit, description, iconRes, feelsLike, humidity)
     applyCustomBackground(views, context)
     views.setOnClickPendingIntent(R.id.widget_root, makePendingIntent(context))
     return views
@@ -203,12 +206,12 @@ fun buildRemoteViewsMedium(
     temp: Int,
     tempUnit: String,
     description: String,
-    iconEmoji: String,
+    iconRes: Int,
     feelsLike: Int,
     humidity: Int,
 ): RemoteViews {
     val views = RemoteViews(context.packageName, R.layout.widget_weather_medium)
-    fillSharedViews(views, locationName, temp, tempUnit, description, iconEmoji, feelsLike, humidity)
+    fillSharedViews(views, locationName, temp, tempUnit, description, iconRes, feelsLike, humidity)
     applyCustomBackground(views, context)
     views.setOnClickPendingIntent(R.id.widget_root, makePendingIntent(context))
     return views
@@ -218,11 +221,11 @@ fun buildRemoteViewsSmall(
     context: Context,
     temp: Int,
     tempUnit: String,
-    iconEmoji: String,
+    iconRes: Int,
 ): RemoteViews {
     val views = RemoteViews(context.packageName, R.layout.widget_weather_small)
     views.setTextViewText(R.id.widget_temp_small, "$temp$tempUnit")
-    views.setTextViewText(R.id.widget_icon_small, iconEmoji)
+    views.setImageViewResource(R.id.widget_icon_small, iconRes)
     applyCustomBackground(views, context)
     views.setOnClickPendingIntent(R.id.widget_root, makePendingIntent(context))
     return views
@@ -235,13 +238,13 @@ fun pickViews(
     temp: Int,
     tempUnit: String,
     description: String,
-    iconEmoji: String,
+    iconRes: Int,
     feelsLike: Int,
     humidity: Int,
 ): RemoteViews = when {
-    widthDp < 100 -> buildRemoteViewsSmall(context, temp, tempUnit, iconEmoji)
-    widthDp < 200 -> buildRemoteViewsMedium(context, locationName, temp, tempUnit, description, iconEmoji, feelsLike, humidity)
-    else -> buildRemoteViews(context, locationName, temp, tempUnit, description, iconEmoji, feelsLike, humidity)
+    widthDp < 100 -> buildRemoteViewsSmall(context, temp, tempUnit, iconRes)
+    widthDp < 200 -> buildRemoteViewsMedium(context, locationName, temp, tempUnit, description, iconRes, feelsLike, humidity)
+    else -> buildRemoteViews(context, locationName, temp, tempUnit, description, iconRes, feelsLike, humidity)
 }
 
 fun updateAllWidgets(
@@ -250,7 +253,7 @@ fun updateAllWidgets(
     temp: Int,
     tempUnit: String,
     description: String,
-    iconEmoji: String,
+    iconRes: Int,
     feelsLike: Int,
     humidity: Int,
 ) {
@@ -260,9 +263,9 @@ fun updateAllWidgets(
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         val responsive = RemoteViews(
             mapOf(
-                SizeF(56f, 56f) to buildRemoteViewsSmall(context, temp, tempUnit, iconEmoji),
-                SizeF(110f, 110f) to buildRemoteViewsMedium(context, locationName, temp, tempUnit, description, iconEmoji, feelsLike, humidity),
-                SizeF(250f, 110f) to buildRemoteViews(context, locationName, temp, tempUnit, description, iconEmoji, feelsLike, humidity),
+                SizeF(56f, 56f) to buildRemoteViewsSmall(context, temp, tempUnit, iconRes),
+                SizeF(110f, 110f) to buildRemoteViewsMedium(context, locationName, temp, tempUnit, description, iconRes, feelsLike, humidity),
+                SizeF(250f, 110f) to buildRemoteViews(context, locationName, temp, tempUnit, description, iconRes, feelsLike, humidity),
             )
         )
         for (id in ids) {
@@ -272,7 +275,7 @@ fun updateAllWidgets(
         for (id in ids) {
             val widthDp = manager.getAppWidgetOptions(id)
                 .getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
-            manager.updateAppWidget(id, pickViews(context, widthDp, locationName, temp, tempUnit, description, iconEmoji, feelsLike, humidity))
+            manager.updateAppWidget(id, pickViews(context, widthDp, locationName, temp, tempUnit, description, iconRes, feelsLike, humidity))
         }
     }
 }
