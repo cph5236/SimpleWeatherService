@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { CurrentWeatherCard } from '../components/CurrentWeatherCard'
 import { Forecast10Day } from '../components/Forecast10Day'
 import { Hourly24 } from '../components/Hourly24'
@@ -45,7 +45,14 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
   const { current, daily, hourly, loading, error, refetch, refetchCurrent, lastCurrentFetch } =
     useWeather(activeLocation, units, activeCurrent)
 
-  const { pullDistance, isPulling } = usePullToRefresh(refetchCurrent, lastCurrentFetch)
+  const [radarRefreshKey, setRadarRefreshKey] = useState(0)
+
+  const handleRefresh = useCallback(() => {
+    refetchCurrent()
+    setRadarRefreshKey((k) => k + 1)
+  }, [refetchCurrent])
+
+  const { pullDistance, isPulling } = usePullToRefresh(handleRefresh, lastCurrentFetch)
   const { widgetLocationId, widgetMode, setWidgetLocation, syncAutoLocation } = useWidgetLocation(units)
   const { bgColor, bgAlpha, setWidgetBackground } = useWidgetBackground()
 
@@ -192,7 +199,7 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
                 units={units}
                 isSaved={hasLocation(activeId!)}
                 onSaveToggle={handleSaveToggle}
-                onRefresh={refetchCurrent}
+                onRefresh={handleRefresh}
                 lastRefreshed={lastCurrentFetch}
               />
               <div className="row g-4">
@@ -213,7 +220,7 @@ export function HomePage({ theme, onToggleTheme }: HomePageProps) {
                       </div>
                     }
                   >
-                    <RadarMap lat={activeLocation.lat} lon={activeLocation.lon} country={activeLocation.country} />
+                    <RadarMap lat={activeLocation.lat} lon={activeLocation.lon} country={activeLocation.country} refreshSignal={radarRefreshKey} />
                   </Suspense>
                 </div>
               </div>
