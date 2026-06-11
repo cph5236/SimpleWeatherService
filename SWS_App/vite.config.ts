@@ -3,7 +3,9 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: process.env.VITE_BUILD_TARGET === 'mobile' ? '/' : '/SimpleWeatherService/',
+  base: process.env.VITE_BUILD_TARGET === 'mobile'
+    ? '/'
+    : (process.env.VITE_BASE_PATH ?? '/SimpleWeatherService/'),
   plugins: [
     react({
       babel: {
