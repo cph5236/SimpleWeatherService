@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { getWeatherDescription, getWeatherEmoji } from '../types/weather'
+import { getWeatherDescription } from '../types/weather'
 import type { DailyForecast, Units } from '../types/weather'
+import { WeatherIcon } from './WeatherIcon'
 
 interface Forecast10DayProps {
   days: DailyForecast[]
@@ -134,9 +135,9 @@ export function Forecast10Day({ days, units }: Forecast10DayProps) {
                   {formatDay(day.date, i)}
                 </span>
 
-                {/* Emoji */}
-                <span style={{ fontSize: '1.4rem', lineHeight: 1, minWidth: 28 }} aria-hidden="true">
-                  {getWeatherEmoji(day.weatherCode)}
+                {/* Weather icon — daily forecast always uses the daytime variant */}
+                <span style={{ minWidth: 28, display: 'inline-flex' }}>
+                  <WeatherIcon code={day.weatherCode} size={28} />
                 </span>
 
                 {/* Temp range — mobile: compact text; sm+: visual bar */}

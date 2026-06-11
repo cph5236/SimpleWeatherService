@@ -10,6 +10,8 @@ interface SettingsModalProps {
   onToggleTheme: () => void
   units: Units
   onToggleUnits: () => void
+  iconAnimation: boolean
+  onToggleIconAnimation: () => void
   savedLocations: SavedLocation[]
   widgetLocationId: string | null
   widgetMode: 'auto' | 'manual'
@@ -26,6 +28,8 @@ export function SettingsModal({
   onToggleTheme,
   units,
   onToggleUnits,
+  iconAnimation,
+  onToggleIconAnimation,
   savedLocations,
   widgetLocationId,
   widgetMode,
@@ -91,6 +95,24 @@ export function SettingsModal({
                     id="dark-mode-toggle"
                     checked={theme === 'dark'}
                     onChange={onToggleTheme}
+                  />
+                </div>
+              </div>
+
+              <hr />
+
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <label htmlFor="icon-animation-toggle" className="form-label mb-0">
+                  Animated Weather Icons
+                </label>
+                <div className="form-check form-switch mb-0">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="icon-animation-toggle"
+                    checked={iconAnimation}
+                    onChange={onToggleIconAnimation}
                   />
                 </div>
               </div>

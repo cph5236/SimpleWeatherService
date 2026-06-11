@@ -246,6 +246,7 @@ interface HourlyRawData {
   wind_direction_10m: number[]
   weather_code: number[]
   uv_index: number[]
+  is_day: number[]
 }
 
 export async function getHourlyForecast(lat: number, lon: number, units: Units): Promise<HourlyForecast[]> {
@@ -253,13 +254,13 @@ export async function getHourlyForecast(lat: number, lon: number, units: Units):
 
   let raw = getCached<HourlyRawData>(key)
 
-  // Invalidate cache entries that predate the wind_direction_10m field addition.
-  if (raw && !raw.wind_direction_10m) raw = null
+  // Invalidate cache entries that predate the wind_direction_10m / is_day field additions.
+  if (raw && (!raw.wind_direction_10m || !raw.is_day)) raw = null
 
   if (!raw) {
     const url =
       `${BASE_URL}?latitude=${lat}&longitude=${lon}` +
-      `&hourly=temperature_2m,precipitation_probability,wind_speed_10m,wind_direction_10m,weather_code,uv_index&forecast_days=2` +
+      `&hourly=temperature_2m,precipitation_probability,wind_speed_10m,wind_direction_10m,weather_code,uv_index,is_day&forecast_days=2` +
       unitParams(units) + '&timezone=auto'
 
     const json = await fetchWeather(url)
@@ -273,6 +274,7 @@ export async function getHourlyForecast(lat: number, lon: number, units: Units):
         wind_direction_10m: number[]
         weather_code: number[]
         uv_index: number[]
+        is_day: number[]
       }
     }
 
@@ -285,6 +287,7 @@ export async function getHourlyForecast(lat: number, lon: number, units: Units):
       wind_direction_10m: data.hourly.wind_direction_10m,
       weather_code: data.hourly.weather_code,
       uv_index: data.hourly.uv_index,
+      is_day: data.hourly.is_day,
     }
 
     setCached(key, raw, HOURLY_TTL_MS)
@@ -304,5 +307,6 @@ export async function getHourlyForecast(lat: number, lon: number, units: Units):
     windDirection: resolved.wind_direction_10m[sliceStart + i] ?? 0,
     weatherCode: resolved.weather_code[sliceStart + i],
     uvIndex: resolved.uv_index[sliceStart + i] ?? 0,
+    isDay: resolved.is_day[sliceStart + i] === 1,
   }))
 }
