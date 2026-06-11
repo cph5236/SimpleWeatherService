@@ -1,0 +1,74 @@
+name: PR Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+defaults:
+  run:
+    working-directory: SWS_App
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: SWS_App/package-lock.json
+
+      - run: npm ci
+
+      - name: Build with preview base path
+        run: npm run build
+        env:
+          VITE_BASE_PATH: /SimpleWeatherService/pr-previews/${{ github.sha }}/
+
+      - name: Deploy preview to gh-pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: SWS_App/dist
+          branch: gh-pages
+          target-folder: pr-previews/${{ github.sha }}
+          clean: false
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = context.sha;
+            const url = `https://cph5236.github.io/SimpleWeatherService/pr-previews/${sha}/`;
+            const body = `### Preview deployed\n\n**${url}**\n\nCommit: \`${sha}\``;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.login === 'github-actions[bot]' && c.body.includes('Preview deployed')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
