@@ -110,6 +110,19 @@ When modifying this project:
 5. Prefer incremental, focused changes.
 6. Assume portfolio-quality code standards.
 
+### Post-PR review
+
+After opening a PR, this repo's Claude review GitHub Action posts a code-review
+comment on it. Once per PR:
+
+1. Wait ~5 minutes for the review job to finish.
+2. Pull the review comment (e.g. `gh pr view <n> --json comments` and the inline
+   `gh api repos/{owner}/{repo}/pulls/<n>/comments`).
+3. Validate each finding against the code and action on the valid ones — fix
+   real issues, push back with reasoning on ones that don't apply.
+
+Do **one** round of this, then stop. Do not re-pull and re-review in a loop.
+
 ---
 
 ## Non-Goals
