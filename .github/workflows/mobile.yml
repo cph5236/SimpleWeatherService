@@ -41,44 +41,6 @@ jobs:
         run: ./gradlew assembleDebug
 
       # ---- Push / workflow_dispatch path: publish signed AAB to Play Console ----
-      - name: List available Play Console tracks (debug — remove after confirming track name)
-        if: github.event_name != 'pull_request'
-        env:
-          ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-        run: |
-          pip install --quiet google-auth requests
-          python3 - <<'EOF'
-          import json, os
-          import google.auth
-          import google.auth.transport.requests
-
-          creds_json = os.environ["ANDROID_PUBLISHER_CREDENTIALS"]
-          creds_info = json.loads(creds_json)
-          creds = google.oauth2.service_account.Credentials.from_service_account_info(
-              creds_info,
-              scopes=["https://www.googleapis.com/auth/androidpublisher"]
-          )
-          creds.refresh(google.auth.transport.requests.Request())
-
-          import urllib.request
-          pkg = "com.cph5236.simpleweatherservice"
-          # Open a temporary edit
-          req = urllib.request.Request(
-              f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{pkg}/edits",
-              method="POST", headers={"Authorization": f"Bearer {creds.token}", "Content-Type": "application/json"},
-              data=b"{}"
-          )
-          edit = json.loads(urllib.request.urlopen(req).read())
-          edit_id = edit["id"]
-          # List tracks
-          req2 = urllib.request.Request(
-              f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{pkg}/edits/{edit_id}/tracks",
-              headers={"Authorization": f"Bearer {creds.token}"}
-          )
-          tracks = json.loads(urllib.request.urlopen(req2).read())
-          print(json.dumps(tracks, indent=2))
-          EOF
-
       - name: Decode keystore
         if: github.event_name != 'pull_request'
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
