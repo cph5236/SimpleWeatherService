@@ -54,7 +54,7 @@ dependencies {
 }
 
 play {
-    track = '4699830681016541675'
+    track = 'Closed group V0.0.5'
     defaultToAppBundles = true
 }
 
