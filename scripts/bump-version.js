@@ -59,13 +59,16 @@ console.log(`  build.gradle  versionName: "${newVersion}"`)
 // --- git commit + tag ---
 const tag = `v${newVersion}`
 try {
-  execSync(`git -C "${root}" add SWS_App/package.json SWS_App/android/app/build.gradle`, { stdio: 'inherit' })
-  execSync(`git -C "${root}" commit -m "chore: release ${tag}"`, { stdio: 'inherit' })
-  execSync(`git -C "${root}" tag ${tag}`, { stdio: 'inherit' })
-  execSync(`git -C "${root}" push origin HEAD --tags`, { stdio: 'inherit' })
+  const git = (cmd) => execSync(cmd, { stdio: 'inherit', cwd: root })
+  git('git add SWS_App/package.json SWS_App/android/app/build.gradle')
+  git(`git commit -m "chore: release ${tag}"`)
+  git(`git tag -a ${tag} -m "Release ${tag}"`)
+  git('git push origin HEAD')
+  git(`git push origin ${tag}`)
   console.log(`\nTagged and pushed ${tag} — mobile CI/CD workflow triggered.`)
+
 } catch (err) {
   console.error('\nVersion files updated but git commit/tag/push failed.')
-  console.error('Commit and push manually, then: git tag ' + tag + ' && git push origin ' + tag)
+  console.error(`Commit and push manually, then: git tag -a ${tag} -m "Release ${tag}" && git push origin HEAD ${tag}`)
   process.exit(1)
 }
