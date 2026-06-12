@@ -45,7 +45,7 @@ jobs:
         if: github.event_name != 'pull_request'
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
 
-      - name: Publish to Play Console (closed testing / alpha)
+      - name: Publish to Play Console (Closed group V0.0.5)
         if: github.event_name != 'pull_request'
         working-directory: SWS_App/android
         env:

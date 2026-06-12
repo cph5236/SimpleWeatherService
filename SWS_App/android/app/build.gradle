@@ -54,7 +54,7 @@ dependencies {
 }
 
 play {
-    track = 'alpha'
+    track = 'closedGroupV0.0.5'
     defaultToAppBundles = true
 }
 
