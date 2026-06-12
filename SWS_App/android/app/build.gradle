@@ -54,7 +54,7 @@ dependencies {
 }
 
 play {
-    track = 'beta'
+    track = 'alpha'
     defaultToAppBundles = true
 }
 
