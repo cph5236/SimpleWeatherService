@@ -8,12 +8,11 @@
     android:padding="8dp"
     android:background="@color/widget_background">
 
-    <TextView
+    <ImageView
         android:id="@+id/widget_icon_small"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="32sp"
-        android:gravity="center" />
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:importantForAccessibility="no" />
 
     <TextView
         android:id="@+id/widget_temp_small"

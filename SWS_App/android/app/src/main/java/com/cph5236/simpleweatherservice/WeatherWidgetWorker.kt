@@ -73,19 +73,21 @@ class WeatherWidgetWorker(
             val feelsLike = Math.round(current.getDouble("apparent_temperature")).toInt()
             val humidity = current.getInt("relative_humidity_2m")
             val weatherCode = current.getInt("weather_code")
+            val isDay = current.getInt("is_day") == 1
             val tempUnit = if (units == "imperial") "°F" else "°C"
 
             val description = weatherDescription(weatherCode)
-            val iconEmoji = weatherIconEmoji(weatherCode)
+            val iconRes = weatherIconRes(weatherCode, isDay)
 
             prefs.edit()
                 .putInt("widget_last_temp", temp)
                 .putInt("widget_last_feels_like", feelsLike)
                 .putInt("widget_last_humidity", humidity)
                 .putInt("widget_last_code", weatherCode)
+                .putBoolean("widget_last_is_day", isDay)
                 .apply()
 
-            updateAllWidgets(ctx, locName, temp, tempUnit, description, iconEmoji, feelsLike, humidity)
+            updateAllWidgets(ctx, locName, temp, tempUnit, description, iconRes, feelsLike, humidity)
             Result.success()
         } catch (e: Exception) {
             Result.retry()

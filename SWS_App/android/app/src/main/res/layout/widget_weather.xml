@@ -78,12 +78,12 @@
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
-            <TextView
+            <ImageView
                 android:id="@+id/widget_icon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:layout_marginEnd="4dp" />
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_marginEnd="6dp"
+                android:importantForAccessibility="no" />
 
             <TextView
                 android:id="@+id/widget_description"

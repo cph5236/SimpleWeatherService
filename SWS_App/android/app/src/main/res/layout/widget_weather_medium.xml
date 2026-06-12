@@ -25,11 +25,11 @@
             android:maxLines="1"
             android:ellipsize="end" />
 
-        <TextView
+        <ImageView
             android:id="@+id/widget_icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="22sp" />
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:importantForAccessibility="no" />
 
     </LinearLayout>
 
