@@ -4,6 +4,12 @@
     android:viewportWidth="64"
     android:viewportHeight="64">
     <path
+        android:fillColor="#FFFBBF24"
+        android:strokeColor="#FFF8AF18"
+        android:strokeWidth=".5"
+        android:strokeMiterLimit="10"
+        android:pathData="M21.5 32a10.5 10.5 0 1 0 21 0 10.5 10.5 0 1 0-21 0z"/>
+    <path
         android:strokeColor="#FFFBBF24"
         android:strokeWidth="3"
         android:strokeLineCap="round"

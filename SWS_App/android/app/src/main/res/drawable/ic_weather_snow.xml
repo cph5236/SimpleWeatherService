@@ -12,15 +12,30 @@
     <path
         android:strokeColor="#FF86C3DB"
         android:strokeWidth="1"
+        android:strokeMiterLimit="10"
+        android:pathData="M29.75 45a1.25 1.25 0 1 0 2.5 0 1.25 1.25 0 1 0-2.5 0z"/>
+    <path
+        android:strokeColor="#FF86C3DB"
+        android:strokeWidth="1"
         android:strokeLineCap="round"
         android:strokeMiterLimit="10"
         android:pathData="M33.17 46.25l-1.09-0.63m-2.16-1.24l-1.09-0.63M31 42.5v1.25m0 3.75v-1.25m-1.08-0.63l-1.09 0.63m4.34-2.5l-1.09 0.63"/>
     <path
         android:strokeColor="#FF86C3DB"
         android:strokeWidth="1"
+        android:strokeMiterLimit="10"
+        android:pathData="M22.75 45a1.25 1.25 0 1 0 2.5 0 1.25 1.25 0 1 0-2.5 0z"/>
+    <path
+        android:strokeColor="#FF86C3DB"
+        android:strokeWidth="1"
         android:strokeLineCap="round"
         android:strokeMiterLimit="10"
         android:pathData="M26.17 46.25l-1.09-0.63m-2.16-1.24l-1.09-0.63M24 42.5v1.25m0 3.75v-1.25m-1.08-0.63l-1.09 0.63m4.34-2.5l-1.09 0.63"/>
+    <path
+        android:strokeColor="#FF86C3DB"
+        android:strokeWidth="1"
+        android:strokeMiterLimit="10"
+        android:pathData="M36.75 45a1.25 1.25 0 1 0 2.5 0 1.25 1.25 0 1 0-2.5 0z"/>
     <path
         android:strokeColor="#FF86C3DB"
         android:strokeWidth="1"
