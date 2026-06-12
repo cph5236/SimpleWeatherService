@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'com.github.triplet.play'
 
 android {
     namespace = "com.cph5236.simpleweatherservice"
@@ -50,6 +51,11 @@ dependencies {
     implementation project(':capacitor-cordova-android-plugins')
     implementation "androidx.work:work-runtime-ktx:$workManagerVersion"
     testImplementation "androidx.work:work-testing:$workManagerVersion"
+}
+
+play {
+    track = 'alpha'
+    defaultToAppBundles = true
 }
 
 apply from: 'capacitor.build.gradle'

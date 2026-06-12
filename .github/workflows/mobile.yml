@@ -3,6 +3,8 @@ name: Mobile Builds
 on:
   push:
     branches: [main, release/*]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -16,7 +18,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: SWS_App/package-lock.json
 
@@ -26,27 +28,34 @@ jobs:
           java-version: 21
 
       - run: npm ci
-      - run: npm run build
+      - run: npm run build:mobile
         env:
           VITE_BUILD_TARGET: mobile
+
       - run: npx cap sync android
 
+      # ---- PR path: unsigned verify build only (no secrets, no AAB upload) ----
+      - name: Build (PR — unsigned verify)
+        if: github.event_name == 'pull_request'
+        working-directory: SWS_App/android
+        run: ./gradlew assembleDebug
+
+      # ---- Push / workflow_dispatch path: publish signed AAB to Play Console ----
       - name: Decode keystore
+        if: github.event_name != 'pull_request'
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
 
-      - name: Build AAB
+      - name: Publish to Play Console (closed testing / alpha)
+        if: github.event_name != 'pull_request'
         working-directory: SWS_App/android
+        env:
+          ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
-          ./gradlew bundleRelease \
+          ./gradlew publishReleaseBundle \
             -Pandroid.injected.signing.store.file=${{ github.workspace }}/SWS_App/android/app/release.keystore \
             -Pandroid.injected.signing.store.password=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \
             -Pandroid.injected.signing.key.alias=${{ secrets.ANDROID_KEY_ALIAS }} \
             -Pandroid.injected.signing.key.password=${{ secrets.ANDROID_KEY_PASSWORD }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: android-aab
-          path: SWS_App/android/app/build/outputs/bundle/release/app-release.aab
 
   ios:
     runs-on: macos-latest
@@ -58,7 +67,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: SWS_App/package-lock.json
 
