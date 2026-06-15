@@ -80,7 +80,8 @@ export function getWeatherIconName(code: number, isDay: boolean): string {
   const dayNight = isDay ? 'day' : 'night'
   if (code === 0) return `clear-${dayNight}`
   if (code <= 3) return `partly-cloudy-${dayNight}`
-  if (code === 45 || code === 48) return 'fog'
+  if (code === 45) return 'fog'
+  if (code === 48) return 'fog-night'
   if (code >= 51 && code <= 57) return 'drizzle'
   if (code >= 61 && code <= 67) return 'rain'
   if (code >= 71 && code <= 77) return 'snow'

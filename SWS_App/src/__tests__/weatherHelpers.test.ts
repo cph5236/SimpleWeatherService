@@ -67,9 +67,11 @@ describe('getWeatherIconName', () => {
     expect(getWeatherIconName(3, false)).toBe('partly-cloudy-night')
   })
 
-  it('returns a day/night-agnostic fog icon for codes 45 and 48', () => {
+  it('returns fog for code 45 and the icy fog-night variant for code 48', () => {
     expect(getWeatherIconName(45, true)).toBe('fog')
-    expect(getWeatherIconName(48, false)).toBe('fog')
+    expect(getWeatherIconName(45, false)).toBe('fog')
+    expect(getWeatherIconName(48, true)).toBe('fog-night')
+    expect(getWeatherIconName(48, false)).toBe('fog-night')
   })
 
   it('returns rain for codes 61-67 regardless of day/night', () => {
