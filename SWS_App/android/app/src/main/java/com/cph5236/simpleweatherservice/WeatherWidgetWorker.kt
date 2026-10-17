@@ -5,6 +5,7 @@ import androidx.work.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
@@ -16,6 +17,7 @@ class WeatherWidgetWorker(
     companion object {
         private const val WORK_TAG_PERIODIC = "sws_widget_refresh"
         private const val WORK_TAG_IMMEDIATE = "sws_widget_refresh_once"
+        private const val HTTP_TIMEOUT_MS = 15_000
 
         fun enqueuePeriodic(context: Context) {
             val request = PeriodicWorkRequestBuilder<WeatherWidgetWorker>(30, TimeUnit.MINUTES)
@@ -66,7 +68,7 @@ class WeatherWidgetWorker(
                 "&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day" +
                 "$unitParams&timezone=auto&forecast_days=1"
 
-            val json = JSONObject(URL(urlStr).readText())
+            val json = JSONObject(fetch(urlStr))
             val current = json.getJSONObject("current")
 
             val temp = Math.round(current.getDouble("temperature_2m")).toInt()
@@ -90,7 +92,27 @@ class WeatherWidgetWorker(
             updateAllWidgets(ctx, locName, temp, tempUnit, description, iconRes, feelsLike, humidity)
             Result.success()
         } catch (e: Exception) {
-            Result.retry()
+            // Periodic work must not return retry(): WorkManager applies exponential
+            // backoff to the periodic schedule itself (capped at 5 hours) and only
+            // resets it after a success, so a few failed runs overnight would push
+            // the next refresh hours out. Fail this run and wait for the next period.
+            if (tags.contains(WORK_TAG_PERIODIC)) Result.failure() else Result.retry()
+        }
+    }
+
+    // URL.readText() has no timeouts, so a socket stalled by Doze or a network
+    // switch would hang until the system killed the job.
+    private fun fetch(urlStr: String): String {
+        val conn = URL(urlStr).openConnection() as HttpURLConnection
+        try {
+            conn.connectTimeout = HTTP_TIMEOUT_MS
+            conn.readTimeout = HTTP_TIMEOUT_MS
+            if (conn.responseCode != HttpURLConnection.HTTP_OK) {
+                throw IllegalStateException("HTTP ${conn.responseCode}")
+            }
+            return conn.inputStream.bufferedReader().use { it.readText() }
+        } finally {
+            conn.disconnect()
         }
     }
 }
